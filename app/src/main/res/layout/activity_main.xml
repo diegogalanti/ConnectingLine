@@ -8,11 +8,11 @@
     tools:context=".MainActivity">
 
     <com.gallardo.widget.ConnectingLineView
-        android:id="@+id/clid"
+        android:id="@+id/one_to_two"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        app:originView="@id/textView"
-        app:destinationView="@id/textView2"
+        app:originView="@id/one"
+        app:destinationView="@id/two"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -20,23 +20,158 @@
     </com.gallardo.widget.ConnectingLineView>
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/one"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="FirstMatch"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginEnd="50dp"
-        android:layout_marginTop="50dp"
+        android:text="one"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="10dp"
+        android:background="#E3AA"
         />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/two"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="SecondMatch"
-        android:layout_marginBottom="50dp"
-        android:layout_marginStart="50dp"
+        android:text="two"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="150dp"
+        android:background="#E3AA"
+        />
+
+    <com.gallardo.widget.ConnectingLineView
+        android:id="@+id/three_to_four"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        app:originView="@id/three"
+        app:destinationView="@id/four"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+    </com.gallardo.widget.ConnectingLineView>
+
+    <TextView
+        android:id="@+id/three"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="three"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="170dp"
+        android:background="#E3AA"
+        />
+
+    <TextView
+        android:id="@+id/four"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="four"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="300dp"
+        android:background="#E3AA"
+        />
+
+    <com.gallardo.widget.ConnectingLineView
+        android:id="@+id/five_to_six"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        app:originView="@id/five"
+        app:destinationView="@id/six"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+    </com.gallardo.widget.ConnectingLineView>
+
+    <TextView
+        android:id="@+id/five"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="five"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="150dp"
+        android:background="#E3AA"
+        />
+
+    <TextView
+        android:id="@+id/six"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="six"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginEnd="100dp"
+        android:layout_marginTop="10dp"
+        android:background="#E3AA"
+        />
+
+    <com.gallardo.widget.ConnectingLineView
+        android:id="@+id/seven_to_eight"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        app:originView="@id/seven"
+        app:destinationView="@id/eight"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+    </com.gallardo.widget.ConnectingLineView>
+
+    <TextView
+        android:id="@+id/seven"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="seven"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginEnd="100dp"
+        android:layout_marginTop="300dp"
+        android:background="#E3AA"
+        />
+
+    <TextView
+        android:id="@+id/eight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="eight"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="170dp"
+        android:background="#E3AA"
+        />
+
+    <com.gallardo.widget.ConnectingLineView
+        android:id="@+id/two_to_six"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        app:originView="@id/two"
+        app:destinationView="@id/six"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+    </com.gallardo.widget.ConnectingLineView>
+
+    <com.gallardo.widget.ConnectingLineView
+        android:id="@+id/three_to_seven"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        app:originView="@id/three"
+        app:destinationView="@id/seven"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+    </com.gallardo.widget.ConnectingLineView>
 </androidx.constraintlayout.widget.ConstraintLayout>
