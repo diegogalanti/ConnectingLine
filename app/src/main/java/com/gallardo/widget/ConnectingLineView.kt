@@ -2,7 +2,6 @@ package com.gallardo.widget
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
@@ -11,10 +10,6 @@ import android.util.TypedValue
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
-import androidx.core.view.marginBottom
-import androidx.core.view.marginLeft
-import androidx.core.view.marginRight
-import androidx.core.view.marginTop
 import java.lang.Math.abs
 
 
@@ -53,24 +48,11 @@ class ConnectingLineView(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val tv = TypedValue()
-        var actionBarHeight = 0
-        if (context.theme.resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
-            actionBarHeight =
-                TypedValue.complexToDimensionPixelSize(tv.data, resources.displayMetrics)
-        }
-
-
         val originView = rootView.findViewById<View>(idOriginView)
         val destinationView = rootView.findViewById<View>(idDestinationView)
         val constraintLayout = parent as ConstraintLayout
-        val location = IntArray(2)
-        this.getLocationInWindow(location)
 
         adjustConstraintSet(originView, destinationView)
-        Log.e("Location 1", location.joinToString())
-        originView.getLocationOnScreen(location)
-        Log.e("Location 2", actionBarHeight.toString())
         set.applyTo(constraintLayout)
         canvas.drawPath(createPath(originView, destinationView), paint)
     }
@@ -165,9 +147,4 @@ class ConnectingLineView(
         }
         return optimalPath
     }
-
-    private fun createPath(): Path {
-        return Path()
-    }
-
 }
