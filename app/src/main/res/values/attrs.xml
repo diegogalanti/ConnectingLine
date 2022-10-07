@@ -4,5 +4,10 @@
         <attr name="originView" format="reference" />
         <attr name="destinationView" format="reference" />
         <attr name="dentSize" format="float" />
+        <attr name="cornerEffectRadius" format="float" />
+        <attr name="lineWidth" format="float" />
+        <attr name="lineColor" format="color" />
+        <attr name="shadowColor" format="color" />
+        <attr name="preferredPath" format="integer" />
     </declare-styleable>
 </resources>

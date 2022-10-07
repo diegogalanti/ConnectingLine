@@ -110,7 +110,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             gallardo:destinationView="@id/one"
-            gallardo:dentSize="20"
+            gallardo:dentSize="10"
+            gallardo:preferredPath="0"
             gallardo:originView="@id/two"
             tools:ignore="MissingConstraints" />
 
@@ -160,6 +161,7 @@
             android:layout_height="wrap_content"
             gallardo:destinationView="@id/four"
             gallardo:originView="@id/three"
+            gallardo:cornerEffectRadius="10"
             tools:ignore="MissingConstraints" />
 
         <com.gallardo.widget.ConnectingLineView
@@ -168,6 +170,8 @@
             android:layout_height="wrap_content"
             gallardo:destinationView="@id/four"
             gallardo:originView="@id/one"
+            gallardo:shadowColor="#00FFFF"
+            gallardo:lineWidth="5"
             tools:ignore="MissingConstraints" />
 
         <com.gallardo.widget.ConnectingLineView
@@ -176,6 +180,7 @@
             android:layout_height="wrap_content"
             tools:ignore="MissingConstraints"
             gallardo:destinationView="@id/six"
-            gallardo:originView="@id/five"/>
+            gallardo:lineColor="@color/teal_200"
+            gallardo:originView="@id/five" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

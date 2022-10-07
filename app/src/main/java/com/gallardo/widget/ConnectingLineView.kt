@@ -3,9 +3,11 @@ package com.gallardo.widget
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.content.res.getColorOrThrow
 import androidx.core.content.withStyledAttributes
 import kotlin.math.abs
 
@@ -21,16 +23,10 @@ class ConnectingLineView(
     private lateinit var destinationView: View
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        color = Color.BLACK
-        setShadowLayer(2f, 1f, 1f, Color.GRAY)
-        strokeWidth = 2F
-        pathEffect = CornerPathEffect(radiusCornerEffect)
     }
     private var isFirstDraw = true
 
-    private var dentSize = 20.0F
-
-    private var radiusCornerEffect = 5.0F
+    private var dentSize = 20f
 
     private var preferredPath = SIDE_TO_SIDE
 
@@ -40,6 +36,21 @@ class ConnectingLineView(
             idOriginView = getResourceId(R.styleable.ConnectingLineView_originView, 0)
             idDestinationView = getResourceId(R.styleable.ConnectingLineView_destinationView, 0)
             dentSize = getFloat(R.styleable.ConnectingLineView_dentSize, dentSize)
+            preferredPath = getInt(R.styleable.ConnectingLineView_preferredPath, SIDE_TO_SIDE)
+            paint.color = getColor(R.styleable.ConnectingLineView_lineColor, Color.BLACK)
+            paint.strokeWidth = getFloat(R.styleable.ConnectingLineView_lineWidth, 2f)
+            paint.pathEffect =
+                CornerPathEffect(getFloat(R.styleable.ConnectingLineView_cornerEffectRadius, 0f))
+            try {
+                paint.setShadowLayer(
+                    2f,
+                    1f,
+                    1f,
+                    getColorOrThrow(R.styleable.ConnectingLineView_shadowColor)
+                )
+            } catch (e: IllegalArgumentException) {
+                Log.v("ConnectingLine", "No shadow selected")
+            }
         }
     }
 
@@ -76,7 +87,7 @@ class ConnectingLineView(
             return
         }
         super.onDraw(canvas)
-        canvas.drawPath(createPath(originView, destinationView), paint)
+        canvas.drawPath(createPath(), paint)
     }
 
     private fun adjustConstraints() {
@@ -93,28 +104,28 @@ class ConnectingLineView(
         constraint.applyTo(this.layoutParams as ConstraintLayout.LayoutParams)
     }
 
-    private fun createPath(originView: View, destinationView: View): Path {
+    private fun createPath(): Path {
         return when (preferredPath) {
             SIDE_TO_SIDE -> {
-                if (isSideToSidePossible(originView, destinationView))
-                    createPathSideToSide(originView, destinationView)
-                else if (isTopToBottomPossible(originView, destinationView))
-                    createPathTopToBottom(originView, destinationView)
+                if (isSideToSidePossible())
+                    createPathSideToSide()
+                else if (isTopToBottomPossible())
+                    createPathTopToBottom()
                 else
                     Path()
             }
             else -> {
-                if (isTopToBottomPossible(originView, destinationView))
-                    createPathTopToBottom(originView, destinationView)
-                else if (isSideToSidePossible(originView, destinationView))
-                    createPathSideToSide(originView, destinationView)
+                if (isTopToBottomPossible())
+                    createPathTopToBottom()
+                else if (isSideToSidePossible())
+                    createPathSideToSide()
                 else
                     Path()
             }
         }
     }
 
-    private fun createPathSideToSide(originView: View, destinationView: View): Path {
+    private fun createPathSideToSide(): Path {
         val optimalPath = Path()
         val distLeftRight = abs(originView.left - destinationView.right)
         val distRightLeft = abs(originView.right - destinationView.left)
@@ -123,7 +134,7 @@ class ConnectingLineView(
 
         val arrHorizontalDist = listOf(distLeftRight, distRightLeft)
 
-        if (isAbove(originView, destinationView))
+        if (isAbove())
             when (arrHorizontalDist.min()) {
                 distLeftRight -> {
                     optimalPath.moveTo(
@@ -180,7 +191,7 @@ class ConnectingLineView(
         return optimalPath
     }
 
-    private fun createPathTopToBottom(originView: View, destinationView: View): Path {
+    private fun createPathTopToBottom(): Path {
         val optimalPath = Path()
         val distTopBottom = abs(originView.top - destinationView.bottom)
         val distBottomTop = abs(originView.bottom - destinationView.top)
@@ -189,7 +200,7 @@ class ConnectingLineView(
 
         val arrVerticalDist = listOf(distTopBottom, distBottomTop)
 
-        if (isLeft(originView, destinationView))
+        if (isLeft())
             when (arrVerticalDist.min()) {
                 distTopBottom -> {
                     optimalPath.moveTo(
@@ -246,18 +257,18 @@ class ConnectingLineView(
         return optimalPath
     }
 
-    private fun isSideToSidePossible(originView: View, destinationView: View): Boolean {
+    private fun isSideToSidePossible(): Boolean {
         return originView.right < destinationView.left || originView.left > destinationView.right
     }
 
-    private fun isTopToBottomPossible(originView: View, destinationView: View): Boolean {
+    private fun isTopToBottomPossible(): Boolean {
         return originView.bottom < destinationView.top || originView.top > destinationView.bottom
     }
 
-    private fun isAbove(originView: View, destinationView: View) =
+    private fun isAbove() =
         (originView.top + (originView.height / 2)) - (destinationView.top + (destinationView.height / 2)) < 0
 
-    private fun isLeft(originView: View, destinationView: View) =
+    private fun isLeft() =
         (originView.left + (originView.width / 2)) - (destinationView.left + (destinationView.width / 2)) < 0
 
     companion object PathDirection {
