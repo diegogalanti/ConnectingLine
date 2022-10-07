@@ -6,93 +6,95 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
-import java.lang.Math.abs
+import androidx.core.content.withStyledAttributes
+import kotlin.math.abs
+
 
 class ConnectingLineView(
     context: Context,
     attrs: AttributeSet
 ) : View(context, attrs) {
 
-    private val idOriginView: Int = with(attrs) {
-        for (iterator in 0..attributeCount) {
-            return@with if (attrs.getAttributeNameResource(iterator) == R.attr.originView)
-                attrs.getAttributeResourceValue(iterator, 0)
-            else
-                continue
-        }
-        return@with 0
-    }
-
-    private val idDestinationView: Int = with(attrs) {
-        for (iterator in 0..attributeCount) {
-            return@with if (attrs.getAttributeNameResource(iterator) == R.attr.destinationView)
-                attrs.getAttributeResourceValue(iterator, 0)
-            else
-                continue
-        }
-        return@with 0
-    }
-
+    private var idOriginView: Int = 0
+    private var idDestinationView: Int = 0
+    private lateinit var originView: View
+    private lateinit var destinationView: View
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        color = Color.RED
-        strokeWidth = 4F
+        color = Color.BLACK
+        setShadowLayer(2f, 1f, 1f, Color.GRAY)
+        strokeWidth = 2F
+        pathEffect = CornerPathEffect(radiusCornerEffect)
     }
-
-    private val set = ConstraintSet()
+    private var isFirstDraw = true
 
     private var dentSize = 20.0F
 
     private var radiusCornerEffect = 5.0F
 
-    var preferredPath = SIDE_TO_SIDE
+    private var preferredPath = SIDE_TO_SIDE
 
+    init {
+        minimumHeight = 1 //required when the constraintLayout is inside a ScrollView
+        context.withStyledAttributes(attrs, R.styleable.ConnectingLineView) {
+            idOriginView = getResourceId(R.styleable.ConnectingLineView_originView, 0)
+            idDestinationView = getResourceId(R.styleable.ConnectingLineView_destinationView, 0)
+            dentSize = getFloat(R.styleable.ConnectingLineView_dentSize, dentSize)
+        }
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        originView = (parent as ConstraintLayout).findViewById(idOriginView)
+        destinationView = (parent as ConstraintLayout).findViewById(idDestinationView)
+    }
+
+    /**
+     * We adjust the constraints here because we need to know which view, origin or destination
+     * is more to the left, right, top and bottom. The problem is that onLayout comes after onMeasure
+     * So we already calculated our size wrongly at this point, as we have not constraint here.
+     *
+     * Calling requestLayout() here does not work so we implemented a isFirstDraw var that adjust
+     * the constraint on the first time, please check onDraw for further explanation
+     */
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        if (isFirstDraw)
+            adjustConstraints()
+    }
+
+    /**
+     * On the first call to onDraw we don't draw, instead we refresh the layoutParams so the lifecycle
+     * go back to onMeasure with the correct data. On the further calls, the path is drawn normally.
+     *
+     * Check onLayout for further explanation
+     */
     override fun onDraw(canvas: Canvas) {
+        if (isFirstDraw) {
+            layoutParams = layoutParams
+            isFirstDraw = false
+            return
+        }
         super.onDraw(canvas)
-
-        val originView = rootView.findViewById<View>(idOriginView)
-        val destinationView = rootView.findViewById<View>(idDestinationView)
-        val constraintLayout = parent as ConstraintLayout
-
-        adjustConstraintSet(originView, destinationView)
-        set.applyTo(constraintLayout)
-        paint.pathEffect = CornerPathEffect(radiusCornerEffect)
         canvas.drawPath(createPath(originView, destinationView), paint)
     }
 
-    private fun adjustConstraintSet(originView: View, destinationView: View) {
-        set.connect(
-            id,
-            ConstraintSet.LEFT,
-            if (originView.left < destinationView.left) idOriginView else idDestinationView,
-            ConstraintSet.LEFT,
-            0
-        )
-        set.connect(
-            id,
-            ConstraintSet.TOP,
-            if (originView.top < destinationView.top) idOriginView else idDestinationView,
-            ConstraintSet.TOP,
-            0
-        )
-        set.connect(
-            id,
-            ConstraintSet.RIGHT,
-            if (destinationView.right > originView.right) idDestinationView else idOriginView,
-            ConstraintSet.RIGHT,
-            0
-        )
-        set.connect(
-            id,
-            ConstraintSet.BOTTOM,
-            if (destinationView.bottom > originView.bottom) idDestinationView else idOriginView,
-            ConstraintSet.BOTTOM,
-            0
-        )
+    private fun adjustConstraints() {
+        val constraint = ConstraintSet.Constraint()
+        constraint.layout.leftToLeft =
+            if (originView.left < destinationView.left) idOriginView else idDestinationView
+        constraint.layout.rightToRight =
+            if (destinationView.right > originView.right) idDestinationView else idOriginView
+        constraint.layout.topToTop =
+            if (originView.top < destinationView.top) idOriginView else idDestinationView
+        constraint.layout.bottomToBottom =
+            if (destinationView.bottom > originView.bottom) idDestinationView else idOriginView
+
+        constraint.applyTo(this.layoutParams as ConstraintLayout.LayoutParams)
     }
 
     private fun createPath(originView: View, destinationView: View): Path {
-        return when(preferredPath){
+        return when (preferredPath) {
             SIDE_TO_SIDE -> {
                 if (isSideToSidePossible(originView, destinationView))
                     createPathSideToSide(originView, destinationView)
@@ -116,11 +118,12 @@ class ConnectingLineView(
         val optimalPath = Path()
         val distLeftRight = abs(originView.left - destinationView.right)
         val distRightLeft = abs(originView.right - destinationView.left)
-        val verticalDist = abs((originView.top + (originView.height / 2)) - (destinationView.top + (destinationView.height / 2))).toFloat()
+        val verticalDist =
+            abs((originView.top + (originView.height / 2)) - (destinationView.top + (destinationView.height / 2))).toFloat()
 
         val arrHorizontalDist = listOf(distLeftRight, distRightLeft)
 
-        if(isAbove(originView, destinationView))
+        if (isAbove(originView, destinationView))
             when (arrHorizontalDist.min()) {
                 distLeftRight -> {
                     optimalPath.moveTo(
@@ -137,7 +140,8 @@ class ConnectingLineView(
                 distRightLeft -> {
                     optimalPath.moveTo(
                         originView.width.toFloat(),
-                        originView.height.toFloat() / 2)
+                        originView.height.toFloat() / 2
+                    )
                     optimalPath.rLineTo(dentSize, 0.0F)
                     optimalPath.rLineTo(0.0F, verticalDist)
                     optimalPath.lineTo(
@@ -151,7 +155,7 @@ class ConnectingLineView(
                 distLeftRight -> {
                     optimalPath.moveTo(
                         destinationView.width.toFloat() + distLeftRight,
-                        destinationView.height.toFloat() - destinationView.height / 2 + verticalDist//qualquer coisa ajustar aqui segundo para origin
+                        destinationView.height.toFloat() - destinationView.height / 2 + verticalDist
                     )
                     optimalPath.rLineTo(-dentSize, 0.0F)
                     optimalPath.rLineTo(0.0F, -verticalDist)
@@ -163,7 +167,7 @@ class ConnectingLineView(
                 distRightLeft -> {
                     optimalPath.moveTo(
                         originView.width.toFloat(),
-                        destinationView.height.toFloat() - destinationView.height / 2 + verticalDist //qualquer coisa ajustar aqui segundo para origin
+                        destinationView.height.toFloat() - destinationView.height / 2 + verticalDist
                     )
                     optimalPath.rLineTo(dentSize, 0.0F)
                     optimalPath.rLineTo(0.0F, -verticalDist)
@@ -180,11 +184,12 @@ class ConnectingLineView(
         val optimalPath = Path()
         val distTopBottom = abs(originView.top - destinationView.bottom)
         val distBottomTop = abs(originView.bottom - destinationView.top)
-        val horizontalDist = abs((originView.left + (originView.width / 2)) - (destinationView.left + (destinationView.width / 2))).toFloat()
+        val horizontalDist =
+            abs((originView.left + (originView.width / 2)) - (destinationView.left + (destinationView.width / 2))).toFloat()
 
         val arrVerticalDist = listOf(distTopBottom, distBottomTop)
 
-        if(isLeft(originView, destinationView))
+        if (isLeft(originView, destinationView))
             when (arrVerticalDist.min()) {
                 distTopBottom -> {
                     optimalPath.moveTo(
@@ -201,7 +206,8 @@ class ConnectingLineView(
                 distBottomTop -> {
                     optimalPath.moveTo(
                         originView.width.toFloat() / 2,
-                        originView.height.toFloat())
+                        originView.height.toFloat()
+                    )
                     optimalPath.rLineTo(0.0F, dentSize)
                     optimalPath.rLineTo(horizontalDist, 0.0F)
                     optimalPath.lineTo(
@@ -240,20 +246,22 @@ class ConnectingLineView(
         return optimalPath
     }
 
-    private fun isSideToSidePossible(originView : View, destinationView : View): Boolean {
+    private fun isSideToSidePossible(originView: View, destinationView: View): Boolean {
         return originView.right < destinationView.left || originView.left > destinationView.right
     }
 
-    private fun isTopToBottomPossible(originView : View, destinationView : View): Boolean {
+    private fun isTopToBottomPossible(originView: View, destinationView: View): Boolean {
         return originView.bottom < destinationView.top || originView.top > destinationView.bottom
     }
 
-    private fun isAbove(originView : View, destinationView : View) = (originView.top + (originView.height / 2)) - (destinationView.top + (destinationView.height / 2)) < 0
+    private fun isAbove(originView: View, destinationView: View) =
+        (originView.top + (originView.height / 2)) - (destinationView.top + (destinationView.height / 2)) < 0
 
-    private fun isLeft(originView : View, destinationView : View) = (originView.left + (originView.width / 2)) - (destinationView.left + (destinationView.width / 2)) < 0
+    private fun isLeft(originView: View, destinationView: View) =
+        (originView.left + (originView.width / 2)) - (destinationView.left + (destinationView.width / 2)) < 0
 
-    companion object PathDirection{
-        val SIDE_TO_SIDE = 0;
-        val TOP_TO_BOTTOM = 1;
+    companion object PathDirection {
+        const val SIDE_TO_SIDE = 0
+        const val TOP_TO_BOTTOM = 1
     }
 }

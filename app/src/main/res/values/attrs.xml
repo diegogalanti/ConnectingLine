@@ -3,5 +3,6 @@
     <declare-styleable name="ConnectingLineView">
         <attr name="originView" format="reference" />
         <attr name="destinationView" format="reference" />
+        <attr name="dentSize" format="float" />
     </declare-styleable>
 </resources>
