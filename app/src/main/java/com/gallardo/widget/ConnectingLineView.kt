@@ -3,13 +3,12 @@ package com.gallardo.widget
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
-import android.text.Layout
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
-import androidx.core.content.res.TypedArrayUtils.getResourceId
 import androidx.core.content.res.getColorOrThrow
 import androidx.core.content.withStyledAttributes
 import kotlin.math.abs
@@ -18,13 +17,11 @@ import kotlin.math.abs
 class ConnectingLineView : View{
 
     constructor(context: Context, idOriginView : Int, idDestinationView : Int) : super(context) {
-        minimumHeight = 1
         this.idOriginView = idOriginView
         this.idDestinationView = idDestinationView
     }
     @SuppressLint("RestrictedApi")
     constructor(context: Context, attrs: AttributeSet) : super (context, attrs){
-        minimumHeight = 1 //required when the constraintLayout is inside a ScrollView
         context.withStyledAttributes(attrs, R.styleable.ConnectingLineView) {
             idOriginView =
                 getResourceId(R.styleable.ConnectingLineView_originView, 0)
@@ -53,37 +50,39 @@ class ConnectingLineView : View{
     private var idDestinationView: Int = 0
     private lateinit var originView: View
     private lateinit var destinationView: View
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    var paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
+    }
+    set(value){
+        value.style = Paint.Style.STROKE //if the passed Paint has no style or the wrong style
+        field = value
     }
     private var isFirstDraw = true
 
-    private var dentSize = 20f
+    var dentSize = 20f
 
-    private var preferredPath = SIDE_TO_SIDE
+    var preferredPath = SIDE_TO_SIDE
 
     init {
-
+        minimumHeight = 1 //required when the constraintLayout is inside a ScrollView
     }
 
-    //parent check in case originView is added before it is inside a Layout
     fun setOriginView(newOriginViewId : Int): ConnectingLineView {
         idOriginView = newOriginViewId
-        originView = (parent as ConstraintLayout).findViewById(idOriginView)
+        originView = (parent as ViewGroup).findViewById(idOriginView)
         return this
     }
 
-    //parent check in case destinationView is added before it is inside a Layout
     fun setDestinationView(newDestinationViewId : Int): ConnectingLineView {
         idDestinationView = newDestinationViewId
-        destinationView = (parent as ConstraintLayout).findViewById(idDestinationView)
+        destinationView = (parent as ViewGroup).findViewById(idDestinationView)
         return this
     }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        originView = (parent as ConstraintLayout).findViewById(idOriginView)
-        destinationView = (parent as ConstraintLayout).findViewById(idDestinationView)
+        originView = (parent as ViewGroup).findViewById(idOriginView)
+        destinationView = (parent as ViewGroup).findViewById(idDestinationView)
     }
 
     /**
