@@ -12,6 +12,7 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.res.getColorOrThrow
 import androidx.core.content.withStyledAttributes
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 
 class ConnectingLineView : View{
@@ -27,7 +28,7 @@ class ConnectingLineView : View{
                 getResourceId(R.styleable.ConnectingLineView_originView, 0)
             idDestinationView =
                 getResourceId(R.styleable.ConnectingLineView_destinationView, 0)
-            dentSize = getFloat(R.styleable.ConnectingLineView_dentSize, dentSize)
+            dentSize = getInt(R.styleable.ConnectingLineView_dentSize, dentSize)
             preferredPath = getInt(R.styleable.ConnectingLineView_preferredPath, SIDE_TO_SIDE)
             paint.color = getColor(R.styleable.ConnectingLineView_lineColor, Color.BLACK)
             paint.strokeWidth = getFloat(R.styleable.ConnectingLineView_lineWidth, 2f)
@@ -59,7 +60,7 @@ class ConnectingLineView : View{
     }
     private var isFirstDraw = true
 
-    var dentSize = 20f
+    var dentSize = 20
 
     var preferredPath = SIDE_TO_SIDE
 
@@ -95,7 +96,7 @@ class ConnectingLineView : View{
      */
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        if (isFirstDraw)
+//        if (isFirstDraw)
             adjustConstraints()
     }
 
@@ -106,12 +107,13 @@ class ConnectingLineView : View{
      * Check onLayout for further explanation
      */
     override fun onDraw(canvas: Canvas) {
-        if (isFirstDraw) {
-            layoutParams = layoutParams
-            isFirstDraw = false
-            return
-        }
+//        if (isFirstDraw) {
+
+//            return
+//        }
         super.onDraw(canvas)
+        layoutParams = layoutParams
+//        isFirstDraw = false
         canvas.drawPath(createPath(), paint)
     }
 
@@ -126,6 +128,10 @@ class ConnectingLineView : View{
         constraint.layout.bottomToBottom =
             if (destinationView.bottom > originView.bottom) idDestinationView else idOriginView
 
+        constraint.layout.bottomMargin = -dentSize
+        constraint.layout.topMargin = -dentSize
+        constraint.layout.endMargin = -dentSize
+        constraint.layout.startMargin = -dentSize
         constraint.applyTo(this.layoutParams as ConstraintLayout.LayoutParams)
     }
 
@@ -156,7 +162,6 @@ class ConnectingLineView : View{
         val distRightLeft = abs(originView.right - destinationView.left)
         val verticalDist =
             abs((originView.top + (originView.height / 2)) - (destinationView.top + (destinationView.height / 2))).toFloat()
-
         val arrHorizontalDist = listOf(distLeftRight, distRightLeft)
 
         if (isAbove())
@@ -166,7 +171,7 @@ class ConnectingLineView : View{
                         destinationView.width.toFloat() + distLeftRight,
                         originView.height.toFloat() / 2
                     )
-                    optimalPath.rLineTo(-dentSize, 0.0F)
+                    optimalPath.rLineTo(-dentSize.toFloat(), 0.0F)
                     optimalPath.rLineTo(0.0F, verticalDist)
                     optimalPath.lineTo(
                         destinationView.width.toFloat(),
@@ -178,7 +183,7 @@ class ConnectingLineView : View{
                         originView.width.toFloat(),
                         originView.height.toFloat() / 2
                     )
-                    optimalPath.rLineTo(dentSize, 0.0F)
+                    optimalPath.rLineTo(dentSize.toFloat(), 0.0F)
                     optimalPath.rLineTo(0.0F, verticalDist)
                     optimalPath.lineTo(
                         originView.width.toFloat() + distRightLeft.toFloat(),
@@ -193,7 +198,7 @@ class ConnectingLineView : View{
                         destinationView.width.toFloat() + distLeftRight,
                         destinationView.height.toFloat() - destinationView.height / 2 + verticalDist
                     )
-                    optimalPath.rLineTo(-dentSize, 0.0F)
+                    optimalPath.rLineTo(-dentSize.toFloat(), 0.0F)
                     optimalPath.rLineTo(0.0F, -verticalDist)
                     optimalPath.lineTo(
                         destinationView.width.toFloat(),
@@ -205,7 +210,7 @@ class ConnectingLineView : View{
                         originView.width.toFloat(),
                         destinationView.height.toFloat() - destinationView.height / 2 + verticalDist
                     )
-                    optimalPath.rLineTo(dentSize, 0.0F)
+                    optimalPath.rLineTo(dentSize.toFloat(), 0.0F)
                     optimalPath.rLineTo(0.0F, -verticalDist)
                     optimalPath.lineTo(
                         originView.width.toFloat() + distRightLeft,
@@ -213,6 +218,8 @@ class ConnectingLineView : View{
                     )
                 }
             }
+        //required because of the margins, the margins are always the size of the dent
+        optimalPath.offset(dentSize.toFloat(), dentSize.toFloat())
         return optimalPath
     }
 
@@ -222,7 +229,6 @@ class ConnectingLineView : View{
         val distBottomTop = abs(originView.bottom - destinationView.top)
         val horizontalDist =
             abs((originView.left + (originView.width / 2)) - (destinationView.left + (destinationView.width / 2))).toFloat()
-
         val arrVerticalDist = listOf(distTopBottom, distBottomTop)
 
         if (isLeft())
@@ -232,7 +238,7 @@ class ConnectingLineView : View{
                         originView.width.toFloat() / 2,
                         destinationView.height.toFloat() + distTopBottom
                     )
-                    optimalPath.rLineTo(0.0F, -dentSize)
+                    optimalPath.rLineTo(0.0F, -dentSize.toFloat())
                     optimalPath.rLineTo(horizontalDist, 0.0F)
                     optimalPath.lineTo(
                         originView.width.toFloat() / 2 + horizontalDist,
@@ -244,7 +250,7 @@ class ConnectingLineView : View{
                         originView.width.toFloat() / 2,
                         originView.height.toFloat()
                     )
-                    optimalPath.rLineTo(0.0F, dentSize)
+                    optimalPath.rLineTo(0.0F, dentSize.toFloat())
                     optimalPath.rLineTo(horizontalDist, 0.0F)
                     optimalPath.lineTo(
                         originView.width.toFloat() / 2 + horizontalDist,
@@ -259,7 +265,7 @@ class ConnectingLineView : View{
                         destinationView.width.toFloat() - destinationView.width / 2 + horizontalDist,
                         destinationView.height.toFloat() + distTopBottom
                     )
-                    optimalPath.rLineTo(0.0F, -dentSize)
+                    optimalPath.rLineTo(0.0F, -dentSize.toFloat())
                     optimalPath.rLineTo(-horizontalDist, 0.0F)
                     optimalPath.lineTo(
                         destinationView.width.toFloat() / 2,
@@ -271,7 +277,7 @@ class ConnectingLineView : View{
                         destinationView.width.toFloat() - destinationView.width / 2 + horizontalDist,
                         originView.height.toFloat()
                     )
-                    optimalPath.rLineTo(0.0F, dentSize)
+                    optimalPath.rLineTo(0.0F, dentSize.toFloat())
                     optimalPath.rLineTo(-horizontalDist, 0.0F)
                     optimalPath.lineTo(
                         destinationView.width.toFloat() / 2,
@@ -279,6 +285,8 @@ class ConnectingLineView : View{
                     )
                 }
             }
+        //required because of the margins, the margins are always the size of the dent
+        optimalPath.offset(dentSize.toFloat(), dentSize.toFloat())
         return optimalPath
     }
 
