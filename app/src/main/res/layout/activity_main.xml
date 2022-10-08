@@ -102,16 +102,13 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-
-
-
         <com.gallardo.widget.ConnectingLineView
             android:id="@+id/one_to_two"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             gallardo:destinationView="@id/one"
             gallardo:dentSize="10"
-            gallardo:preferredPath="0"
+            gallardo:preferredPath="2"
             gallardo:originView="@id/two"
             tools:ignore="MissingConstraints" />
 

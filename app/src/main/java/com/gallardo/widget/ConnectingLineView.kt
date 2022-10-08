@@ -1,40 +1,35 @@
 package com.gallardo.widget
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
+import android.text.Layout
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.content.res.TypedArrayUtils.getResourceId
 import androidx.core.content.res.getColorOrThrow
 import androidx.core.content.withStyledAttributes
 import kotlin.math.abs
 
 
-class ConnectingLineView(
-    context: Context,
-    attrs: AttributeSet
-) : View(context, attrs) {
+class ConnectingLineView : View{
 
-    private var idOriginView: Int = 0
-    private var idDestinationView: Int = 0
-    private lateinit var originView: View
-    private lateinit var destinationView: View
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
+    constructor(context: Context, idOriginView : Int, idDestinationView : Int) : super(context) {
+        minimumHeight = 1
+        this.idOriginView = idOriginView
+        this.idDestinationView = idDestinationView
     }
-    private var isFirstDraw = true
-
-    private var dentSize = 20f
-
-    private var preferredPath = SIDE_TO_SIDE
-
-    init {
+    @SuppressLint("RestrictedApi")
+    constructor(context: Context, attrs: AttributeSet) : super (context, attrs){
         minimumHeight = 1 //required when the constraintLayout is inside a ScrollView
         context.withStyledAttributes(attrs, R.styleable.ConnectingLineView) {
-            idOriginView = getResourceId(R.styleable.ConnectingLineView_originView, 0)
-            idDestinationView = getResourceId(R.styleable.ConnectingLineView_destinationView, 0)
+            idOriginView =
+                getResourceId(R.styleable.ConnectingLineView_originView, 0)
+            idDestinationView =
+                getResourceId(R.styleable.ConnectingLineView_destinationView, 0)
             dentSize = getFloat(R.styleable.ConnectingLineView_dentSize, dentSize)
             preferredPath = getInt(R.styleable.ConnectingLineView_preferredPath, SIDE_TO_SIDE)
             paint.color = getColor(R.styleable.ConnectingLineView_lineColor, Color.BLACK)
@@ -52,6 +47,37 @@ class ConnectingLineView(
                 Log.v("ConnectingLine", "No shadow selected")
             }
         }
+    }
+
+    private var idOriginView: Int = 0
+    private var idDestinationView: Int = 0
+    private lateinit var originView: View
+    private lateinit var destinationView: View
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+    }
+    private var isFirstDraw = true
+
+    private var dentSize = 20f
+
+    private var preferredPath = SIDE_TO_SIDE
+
+    init {
+
+    }
+
+    //parent check in case originView is added before it is inside a Layout
+    fun setOriginView(newOriginViewId : Int): ConnectingLineView {
+        idOriginView = newOriginViewId
+        originView = (parent as ConstraintLayout).findViewById(idOriginView)
+        return this
+    }
+
+    //parent check in case destinationView is added before it is inside a Layout
+    fun setDestinationView(newDestinationViewId : Int): ConnectingLineView {
+        idDestinationView = newDestinationViewId
+        destinationView = (parent as ConstraintLayout).findViewById(idDestinationView)
+        return this
     }
 
     override fun onAttachedToWindow() {
