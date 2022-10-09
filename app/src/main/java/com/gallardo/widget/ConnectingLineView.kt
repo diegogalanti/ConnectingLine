@@ -112,6 +112,7 @@ class ConnectingLineView : View {
             isFirstDraw = false
             return
         }
+        layoutParams = layoutParams
         super.onDraw(canvas)
         canvas.drawPath(createPath2(), paint)
     }
@@ -175,7 +176,6 @@ class ConnectingLineView : View {
         path.moveTo(
             when (preferredPath) {
                 TOP_TO_TOP, TOP_TO_RIGHT, TOP_TO_LEFT, TOP_TO_BOTTOM, BOTTOM_TO_TOP, BOTTOM_TO_RIGHT, BOTTOM_TO_LEFT, BOTTOM_TO_BOTTOM -> {
-                    Log.e("GOT HERE", "YES")
                     if (isLeft())
                         (originView.width / 2).toFloat()
                     else
@@ -185,7 +185,7 @@ class ConnectingLineView : View {
                     if (isLeft())
                         0f
                     else
-                        (originView.left - destinationView.left).toFloat()
+                        (destinationView.left - originView.left).toFloat()
                 }
                 RIGHT_TO_TOP, RIGHT_TO_RIGHT, RIGHT_TO_LEFT, RIGHT_TO_BOTTOM -> {
                     if (isLeft())
@@ -194,7 +194,6 @@ class ConnectingLineView : View {
                         (originView.left - destinationView.left + originView.width).toFloat()
                 }
                 else -> {
-                    Log.e("GOT HERE", "NO")
                     0f
                 }
             },
@@ -463,9 +462,9 @@ class ConnectingLineView : View {
 //        return originView.bottom < destinationView.top || originView.top > destinationView.bottom
 //    }
 
-    private fun isAbove() = originView.top - destinationView.top <= 0
+    private fun isAbove() = originView.top <= destinationView.top
 
-    private fun isLeft() = originView.left - destinationView.left <= 0
+    private fun isLeft() = originView.left <= destinationView.left
 
     companion object PathDirection {
         const val LEFT_TO_LEFT = 0
