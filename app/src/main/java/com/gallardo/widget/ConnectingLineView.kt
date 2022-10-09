@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.util.Half.toFloat
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -12,24 +13,24 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.res.getColorOrThrow
 import androidx.core.content.withStyledAttributes
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
 
-class ConnectingLineView : View{
+class ConnectingLineView : View {
 
-    constructor(context: Context, idOriginView : Int, idDestinationView : Int) : super(context) {
+    constructor(context: Context, idOriginView: Int, idDestinationView: Int) : super(context) {
         this.idOriginView = idOriginView
         this.idDestinationView = idDestinationView
     }
+
     @SuppressLint("RestrictedApi")
-    constructor(context: Context, attrs: AttributeSet) : super (context, attrs){
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
         context.withStyledAttributes(attrs, R.styleable.ConnectingLineView) {
             idOriginView =
                 getResourceId(R.styleable.ConnectingLineView_originView, 0)
             idDestinationView =
                 getResourceId(R.styleable.ConnectingLineView_destinationView, 0)
             dentSize = getInt(R.styleable.ConnectingLineView_dentSize, dentSize)
-            preferredPath = getInt(R.styleable.ConnectingLineView_preferredPath, SIDE_TO_SIDE)
+            preferredPath = getInt(R.styleable.ConnectingLineView_preferredPath, preferredPath)
             paint.color = getColor(R.styleable.ConnectingLineView_lineColor, Color.BLACK)
             paint.strokeWidth = getFloat(R.styleable.ConnectingLineView_lineWidth, 2f)
             paint.pathEffect =
@@ -54,27 +55,27 @@ class ConnectingLineView : View{
     var paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
     }
-    set(value){
-        value.style = Paint.Style.STROKE //if the passed Paint has no style or the wrong style
-        field = value
-    }
+        set(value) {
+            value.style = Paint.Style.STROKE //if the passed Paint has no style or the wrong style
+            field = value
+        }
     private var isFirstDraw = true
 
     var dentSize = 20
 
-    var preferredPath = SIDE_TO_SIDE
+    var preferredPath = TOP_TO_BOTTOM
 
     init {
         minimumHeight = 1 //required when the constraintLayout is inside a ScrollView
     }
 
-    fun setOriginView(newOriginViewId : Int): ConnectingLineView {
+    fun setOriginView(newOriginViewId: Int): ConnectingLineView {
         idOriginView = newOriginViewId
         originView = (parent as ViewGroup).findViewById(idOriginView)
         return this
     }
 
-    fun setDestinationView(newDestinationViewId : Int): ConnectingLineView {
+    fun setDestinationView(newDestinationViewId: Int): ConnectingLineView {
         idDestinationView = newDestinationViewId
         destinationView = (parent as ViewGroup).findViewById(idDestinationView)
         return this
@@ -96,8 +97,7 @@ class ConnectingLineView : View{
      */
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-//        if (isFirstDraw)
-            adjustConstraints()
+        adjustConstraints()
     }
 
     /**
@@ -107,14 +107,13 @@ class ConnectingLineView : View{
      * Check onLayout for further explanation
      */
     override fun onDraw(canvas: Canvas) {
-//        if (isFirstDraw) {
-
-//            return
-//        }
+        if (isFirstDraw) {
+            layoutParams = layoutParams
+            isFirstDraw = false
+            return
+        }
         super.onDraw(canvas)
-        layoutParams = layoutParams
-//        isFirstDraw = false
-        canvas.drawPath(createPath(), paint)
+        canvas.drawPath(createPath2(), paint)
     }
 
     private fun adjustConstraints() {
@@ -128,184 +127,364 @@ class ConnectingLineView : View{
         constraint.layout.bottomToBottom =
             if (destinationView.bottom > originView.bottom) idDestinationView else idOriginView
 
-        constraint.layout.bottomMargin = -dentSize
-        constraint.layout.topMargin = -dentSize
-        constraint.layout.endMargin = -dentSize
-        constraint.layout.startMargin = -dentSize
+        constraint.layout.bottomMargin = -dentSize - (paint.strokeWidth / 2).toInt()
+        constraint.layout.topMargin = -dentSize - (paint.strokeWidth / 2).toInt()
+        constraint.layout.endMargin = -dentSize - (paint.strokeWidth / 2).toInt()
+        constraint.layout.startMargin = -dentSize - (paint.strokeWidth / 2).toInt()
         constraint.applyTo(this.layoutParams as ConstraintLayout.LayoutParams)
     }
 
-    private fun createPath(): Path {
-        return when (preferredPath) {
-            SIDE_TO_SIDE -> {
-                if (isSideToSidePossible())
-                    createPathSideToSide()
-                else if (isTopToBottomPossible())
-                    createPathTopToBottom()
-                else
-                    Path()
-            }
-            else -> {
-                if (isTopToBottomPossible())
-                    createPathTopToBottom()
-                else if (isSideToSidePossible())
-                    createPathSideToSide()
-                else
-                    Path()
-            }
-        }
+//    private fun createPath(): Path {
+//        return when (preferredPath) {
+//            VERTICAL -> {
+//                if (isSideToSidePossible())
+//                    createPathSideToSide()
+//                else if (isTopToBottomPossible())
+//                    createPathTopToBottom()
+//                else
+//                    Path()
+//            }
+//            TOP_TO_TOP -> {
+//                createPathTopToTop()
+//            }
+//            else -> {
+//                if (isTopToBottomPossible())
+//                    createPathTopToBottom()
+//                else if (isSideToSidePossible())
+//                    createPathSideToSide()
+//                else
+//                    Path()
+//            }
+//        }
+//    }
+
+    private fun createPath2(): Path {
+        val path = Path()
+
+        moveToInitialXY(path)
+        applyFirstLine(path)
+//        applySecondLine(path)
+//        applyThirdLine(path)
+//        applyFourthLine(path)
+//        applyFifthLine(path)
+        applyMarginOffset(path)
+        return path
     }
 
-    private fun createPathSideToSide(): Path {
-        val optimalPath = Path()
-        val distLeftRight = abs(originView.left - destinationView.right)
-        val distRightLeft = abs(originView.right - destinationView.left)
-        val verticalDist =
-            abs((originView.top + (originView.height / 2)) - (destinationView.top + (destinationView.height / 2))).toFloat()
-        val arrHorizontalDist = listOf(distLeftRight, distRightLeft)
+    private fun moveToInitialXY(path: Path) {
+        path.moveTo(
+            when (preferredPath) {
+                TOP_TO_TOP, TOP_TO_RIGHT, TOP_TO_LEFT, TOP_TO_BOTTOM, BOTTOM_TO_TOP, BOTTOM_TO_RIGHT, BOTTOM_TO_LEFT, BOTTOM_TO_BOTTOM -> {
+                    Log.e("GOT HERE", "YES")
+                    if (isLeft())
+                        (originView.width / 2).toFloat()
+                    else
+                        (originView.left - destinationView.left + (originView.width / 2)).toFloat()
+                }
+                LEFT_TO_TOP, LEFT_TO_RIGHT, LEFT_TO_LEFT, LEFT_TO_BOTTOM -> {
+                    if (isLeft())
+                        0f
+                    else
+                        (originView.left - destinationView.left).toFloat()
+                }
+                RIGHT_TO_TOP, RIGHT_TO_RIGHT, RIGHT_TO_LEFT, RIGHT_TO_BOTTOM -> {
+                    if (isLeft())
+                        originView.width.toFloat()
+                    else
+                        (originView.left - destinationView.left + originView.width).toFloat()
+                }
+                else -> {
+                    Log.e("GOT HERE", "NO")
+                    0f
+                }
+            },
+            when (preferredPath) {
+                LEFT_TO_TOP, LEFT_TO_RIGHT, LEFT_TO_LEFT, LEFT_TO_BOTTOM, RIGHT_TO_TOP, RIGHT_TO_RIGHT, RIGHT_TO_LEFT, RIGHT_TO_BOTTOM  -> {
+                    if (isAbove())
+                        (originView.height / 2).toFloat()
+                    else
+                        (originView.top - destinationView.top + (originView.height / 2)).toFloat()
+                }
+                TOP_TO_TOP, TOP_TO_RIGHT, TOP_TO_LEFT, TOP_TO_BOTTOM -> {
+                    if (isAbove())
+                        0f
+                    else
+                        (originView.top - destinationView.top).toFloat()
+                }
+                BOTTOM_TO_TOP, BOTTOM_TO_RIGHT, BOTTOM_TO_LEFT, BOTTOM_TO_BOTTOM -> {
+                    if (isAbove())
+                        originView.height.toFloat()
+                    else
+                        (originView.top - destinationView.top + originView.height).toFloat()
+                }
+                else -> {
+                    0f
+                }
+            }
+        )
+    }
 
-        if (isAbove())
-            when (arrHorizontalDist.min()) {
-                distLeftRight -> {
-                    optimalPath.moveTo(
-                        destinationView.width.toFloat() + distLeftRight,
-                        originView.height.toFloat() / 2
-                    )
-                    optimalPath.rLineTo(-dentSize.toFloat(), 0.0F)
-                    optimalPath.rLineTo(0.0F, verticalDist)
-                    optimalPath.lineTo(
-                        destinationView.width.toFloat(),
-                        originView.height.toFloat() / 2 + verticalDist
-                    )
+    private fun applyFirstLine(path: Path) {
+        path.rLineTo(
+            when (preferredPath) {
+                RIGHT_TO_TOP, RIGHT_TO_RIGHT, RIGHT_TO_LEFT, RIGHT_TO_BOTTOM -> {
+                    dentSize.toFloat()
                 }
-                distRightLeft -> {
-                    optimalPath.moveTo(
-                        originView.width.toFloat(),
-                        originView.height.toFloat() / 2
-                    )
-                    optimalPath.rLineTo(dentSize.toFloat(), 0.0F)
-                    optimalPath.rLineTo(0.0F, verticalDist)
-                    optimalPath.lineTo(
-                        originView.width.toFloat() + distRightLeft.toFloat(),
-                        originView.height.toFloat() / 2 + verticalDist
-                    )
+                LEFT_TO_TOP, LEFT_TO_RIGHT, LEFT_TO_LEFT, LEFT_TO_BOTTOM -> {
+                    -dentSize.toFloat()
+                }
+                else -> {
+                    0f
+                }
+            },
+            when (preferredPath) {
+                TOP_TO_TOP, TOP_TO_RIGHT, TOP_TO_LEFT, TOP_TO_BOTTOM -> {
+                    -dentSize.toFloat()
+                }
+                BOTTOM_TO_TOP, BOTTOM_TO_RIGHT, BOTTOM_TO_LEFT, BOTTOM_TO_BOTTOM -> {
+                    dentSize.toFloat()
+                }
+                else -> {
+                    0f
                 }
             }
-        else
-            when (arrHorizontalDist.min()) {
-                distLeftRight -> {
-                    optimalPath.moveTo(
-                        destinationView.width.toFloat() + distLeftRight,
-                        destinationView.height.toFloat() - destinationView.height / 2 + verticalDist
-                    )
-                    optimalPath.rLineTo(-dentSize.toFloat(), 0.0F)
-                    optimalPath.rLineTo(0.0F, -verticalDist)
-                    optimalPath.lineTo(
-                        destinationView.width.toFloat(),
-                        destinationView.height.toFloat() / 2
-                    )
+        )
+    }
+
+    private fun applyFifthLine(path: Path) {
+        path.rLineTo(
+            when (preferredPath) {
+                TOP_TO_TOP, TOP_TO_RIGHT, TOP_TO_LEFT, TOP_TO_BOTTOM -> {
+                    dentSize.toFloat()
                 }
-                distRightLeft -> {
-                    optimalPath.moveTo(
-                        originView.width.toFloat(),
-                        destinationView.height.toFloat() - destinationView.height / 2 + verticalDist
-                    )
-                    optimalPath.rLineTo(dentSize.toFloat(), 0.0F)
-                    optimalPath.rLineTo(0.0F, -verticalDist)
-                    optimalPath.lineTo(
-                        originView.width.toFloat() + distRightLeft,
-                        destinationView.height.toFloat() / 2
-                    )
+                BOTTOM_TO_TOP, BOTTOM_TO_RIGHT, BOTTOM_TO_LEFT, BOTTOM_TO_BOTTOM -> {
+                    -dentSize.toFloat()
+                }
+                else -> {
+                    0f
+                }
+            },
+            when (preferredPath) {
+                RIGHT_TO_TOP, RIGHT_TO_RIGHT, RIGHT_TO_LEFT, RIGHT_TO_BOTTOM -> {
+                    -dentSize.toFloat()
+                }
+                LEFT_TO_TOP, LEFT_TO_RIGHT, LEFT_TO_LEFT, LEFT_TO_BOTTOM -> {
+                    dentSize.toFloat()
+                }
+                else -> {
+                    0f
                 }
             }
-        //required because of the margins, the margins are always the size of the dent
-        optimalPath.offset(dentSize.toFloat(), dentSize.toFloat())
+        )
+    }
+
+//    private fun createPathTopToTop(): Path {
+//        val optimalPath = Path()
+//        val distTopTop = (originView.top - destinationView.top).toFloat()
+//        val horizontalDist =
+//            (originView.left + (originView.width / 2)) - (destinationView.left + (destinationView.width / 2)).toFloat()
+//
+//
+//
+//        return when {
+//            horizontalDist <= 0 -> {
+//                optimalPath.moveTo(originView.width.toFloat() / 2, 0f)
+//                optimalPath.rLineTo(0f, -dentSize.toFloat())
+//                if (-horizontalDist < originView.width / 2 + dentSize)
+//                    optimalPath.rLineTo(originView.width.toFloat() / 2 + dentSize, 0f)
+//                else
+//                    optimalPath.rLineTo(-horizontalDist, 0f)
+//
+//                optimalPath.rLineTo(0f, -distTopTop)
+//                if (-horizontalDist < originView.width / 2 + dentSize)
+//                    optimalPath.rLineTo(
+//                        -originView.width.toFloat() / 2 - dentSize - horizontalDist,
+//                        0f
+//                    )
+//                optimalPath.rLineTo(0f, dentSize.toFloat())
+//                applyMarginOffset(optimalPath)
+//            }
+//            else -> {
+//                optimalPath.moveTo(destinationView.width.toFloat() / 2 + horizontalDist, 0f)
+//                optimalPath.rLineTo(0f, -dentSize.toFloat())
+//                optimalPath.rLineTo(-horizontalDist, 0f)
+//                optimalPath.rLineTo(0f, -distTopTop)
+//                optimalPath.rLineTo(0f, dentSize.toFloat())
+//                applyMarginOffset(optimalPath)
+//            }
+//        }
+//    }
+
+    private fun applyMarginOffset(optimalPath: Path): Path {
+        optimalPath.offset(
+            -(this.layoutParams as ConstraintLayout.LayoutParams).marginStart.toFloat(),
+            -(this.layoutParams as ConstraintLayout.LayoutParams).topMargin.toFloat()
+        )
         return optimalPath
     }
 
-    private fun createPathTopToBottom(): Path {
-        val optimalPath = Path()
-        val distTopBottom = abs(originView.top - destinationView.bottom)
-        val distBottomTop = abs(originView.bottom - destinationView.top)
-        val horizontalDist =
-            abs((originView.left + (originView.width / 2)) - (destinationView.left + (destinationView.width / 2))).toFloat()
-        val arrVerticalDist = listOf(distTopBottom, distBottomTop)
+//    private fun createPathSideToSide(): Path {
+//        val optimalPath = Path()
+//        val distLeftRight = abs(originView.left - destinationView.right)
+//        val distRightLeft = abs(originView.right - destinationView.left)
+//        val verticalDist =
+//            abs((originView.top + (originView.height / 2)) - (destinationView.top + (destinationView.height / 2))).toFloat()
+//        val arrHorizontalDist = listOf(distLeftRight, distRightLeft)
+//
+//        if (isAbove())
+//            when (arrHorizontalDist.min()) {
+//                distLeftRight -> {
+//                    optimalPath.moveTo(
+//                        destinationView.width.toFloat() + distLeftRight,
+//                        originView.height.toFloat() / 2
+//                    )
+//                    optimalPath.rLineTo(-dentSize.toFloat(), 0.0F)
+//                    optimalPath.rLineTo(0.0F, verticalDist)
+//                    optimalPath.lineTo(
+//                        destinationView.width.toFloat(),
+//                        originView.height.toFloat() / 2 + verticalDist
+//                    )
+//                }
+//                distRightLeft -> {
+//                    optimalPath.moveTo(
+//                        originView.width.toFloat(),
+//                        originView.height.toFloat() / 2
+//                    )
+//                    optimalPath.rLineTo(dentSize.toFloat(), 0.0F)
+//                    optimalPath.rLineTo(0.0F, verticalDist)
+//                    optimalPath.lineTo(
+//                        originView.width.toFloat() + distRightLeft.toFloat(),
+//                        originView.height.toFloat() / 2 + verticalDist
+//                    )
+//                }
+//            }
+//        else
+//            when (arrHorizontalDist.min()) {
+//                distLeftRight -> {
+//                    optimalPath.moveTo(
+//                        destinationView.width.toFloat() + distLeftRight,
+//                        destinationView.height.toFloat() - destinationView.height / 2 + verticalDist
+//                    )
+//                    optimalPath.rLineTo(-dentSize.toFloat(), 0.0F)
+//                    optimalPath.rLineTo(0.0F, -verticalDist)
+//                    optimalPath.lineTo(
+//                        destinationView.width.toFloat(),
+//                        destinationView.height.toFloat() / 2
+//                    )
+//                }
+//                distRightLeft -> {
+//                    optimalPath.moveTo(
+//                        originView.width.toFloat(),
+//                        destinationView.height.toFloat() - destinationView.height / 2 + verticalDist
+//                    )
+//                    optimalPath.rLineTo(dentSize.toFloat(), 0.0F)
+//                    optimalPath.rLineTo(0.0F, -verticalDist)
+//                    optimalPath.lineTo(
+//                        originView.width.toFloat() + distRightLeft,
+//                        destinationView.height.toFloat() / 2
+//                    )
+//                }
+//            }
+//        //required because of the margins, the margins are always the size of the dent
+//        return applyMarginOffset(optimalPath)
+//    }
 
-        if (isLeft())
-            when (arrVerticalDist.min()) {
-                distTopBottom -> {
-                    optimalPath.moveTo(
-                        originView.width.toFloat() / 2,
-                        destinationView.height.toFloat() + distTopBottom
-                    )
-                    optimalPath.rLineTo(0.0F, -dentSize.toFloat())
-                    optimalPath.rLineTo(horizontalDist, 0.0F)
-                    optimalPath.lineTo(
-                        originView.width.toFloat() / 2 + horizontalDist,
-                        destinationView.height.toFloat()
-                    )
-                }
-                distBottomTop -> {
-                    optimalPath.moveTo(
-                        originView.width.toFloat() / 2,
-                        originView.height.toFloat()
-                    )
-                    optimalPath.rLineTo(0.0F, dentSize.toFloat())
-                    optimalPath.rLineTo(horizontalDist, 0.0F)
-                    optimalPath.lineTo(
-                        originView.width.toFloat() / 2 + horizontalDist,
-                        originView.height.toFloat() + distBottomTop.toFloat()
-                    )
-                }
-            }
-        else
-            when (arrVerticalDist.min()) {
-                distTopBottom -> {
-                    optimalPath.moveTo(
-                        destinationView.width.toFloat() - destinationView.width / 2 + horizontalDist,
-                        destinationView.height.toFloat() + distTopBottom
-                    )
-                    optimalPath.rLineTo(0.0F, -dentSize.toFloat())
-                    optimalPath.rLineTo(-horizontalDist, 0.0F)
-                    optimalPath.lineTo(
-                        destinationView.width.toFloat() / 2,
-                        destinationView.height.toFloat()
-                    )
-                }
-                distBottomTop -> {
-                    optimalPath.moveTo(
-                        destinationView.width.toFloat() - destinationView.width / 2 + horizontalDist,
-                        originView.height.toFloat()
-                    )
-                    optimalPath.rLineTo(0.0F, dentSize.toFloat())
-                    optimalPath.rLineTo(-horizontalDist, 0.0F)
-                    optimalPath.lineTo(
-                        destinationView.width.toFloat() / 2,
-                        originView.height.toFloat() + distBottomTop
-                    )
-                }
-            }
-        //required because of the margins, the margins are always the size of the dent
-        optimalPath.offset(dentSize.toFloat(), dentSize.toFloat())
-        return optimalPath
-    }
+//    private fun createPathTopToBottom(): Path {
+//        val optimalPath = Path()
+//        val distTopBottom = abs(originView.top - destinationView.bottom)
+//        val distBottomTop = abs(originView.bottom - destinationView.top)
+//        val horizontalDist =
+//            abs((originView.left + (originView.width / 2)) - (destinationView.left + (destinationView.width / 2))).toFloat()
+//        val arrVerticalDist = listOf(distTopBottom, distBottomTop)
+//
+//        if (isLeft())
+//            when (arrVerticalDist.min()) {
+//                distTopBottom -> {
+//                    optimalPath.moveTo(
+//                        originView.width.toFloat() / 2,
+//                        destinationView.height.toFloat() + distTopBottom
+//                    )
+//                    optimalPath.rLineTo(0.0F, -dentSize.toFloat())
+//                    optimalPath.rLineTo(horizontalDist, 0.0F)
+//                    optimalPath.lineTo(
+//                        originView.width.toFloat() / 2 + horizontalDist,
+//                        destinationView.height.toFloat()
+//                    )
+//                }
+//                distBottomTop -> {
+//                    optimalPath.moveTo(
+//                        originView.width.toFloat() / 2,
+//                        originView.height.toFloat()
+//                    )
+//                    optimalPath.rLineTo(0.0F, dentSize.toFloat())
+//                    optimalPath.rLineTo(horizontalDist, 0.0F)
+//                    optimalPath.lineTo(
+//                        originView.width.toFloat() / 2 + horizontalDist,
+//                        originView.height.toFloat() + distBottomTop.toFloat()
+//                    )
+//                }
+//            }
+//        else
+//            when (arrVerticalDist.min()) {
+//                distTopBottom -> {
+//                    optimalPath.moveTo(
+//                        destinationView.width.toFloat() - destinationView.width / 2 + horizontalDist,
+//                        destinationView.height.toFloat() + distTopBottom
+//                    )
+//                    optimalPath.rLineTo(0.0F, -dentSize.toFloat())
+//                    optimalPath.rLineTo(-horizontalDist, 0.0F)
+//                    optimalPath.lineTo(
+//                        destinationView.width.toFloat() / 2,
+//                        destinationView.height.toFloat()
+//                    )
+//                }
+//                distBottomTop -> {
+//                    optimalPath.moveTo(
+//                        destinationView.width.toFloat() - destinationView.width / 2 + horizontalDist,
+//                        originView.height.toFloat()
+//                    )
+//                    optimalPath.rLineTo(0.0F, dentSize.toFloat())
+//                    optimalPath.rLineTo(-horizontalDist, 0.0F)
+//                    optimalPath.lineTo(
+//                        destinationView.width.toFloat() / 2,
+//                        originView.height.toFloat() + distBottomTop
+//                    )
+//                }
+//            }
+//        //required because of the margins, the margins are always the size of the dent
+//        return applyMarginOffset(optimalPath)
+//    }
 
-    private fun isSideToSidePossible(): Boolean {
-        return originView.right < destinationView.left || originView.left > destinationView.right
-    }
+//    private fun isSideToSidePossible(): Boolean {
+//        return originView.right < destinationView.left || originView.left > destinationView.right
+//    }
+//
+//    private fun isTopToBottomPossible(): Boolean {
+//        return originView.bottom < destinationView.top || originView.top > destinationView.bottom
+//    }
 
-    private fun isTopToBottomPossible(): Boolean {
-        return originView.bottom < destinationView.top || originView.top > destinationView.bottom
-    }
+    private fun isAbove() = originView.top - destinationView.top <= 0
 
-    private fun isAbove() =
-        (originView.top + (originView.height / 2)) - (destinationView.top + (destinationView.height / 2)) < 0
-
-    private fun isLeft() =
-        (originView.left + (originView.width / 2)) - (destinationView.left + (destinationView.width / 2)) < 0
+    private fun isLeft() = originView.left - destinationView.left <= 0
 
     companion object PathDirection {
-        const val SIDE_TO_SIDE = 0
-        const val TOP_TO_BOTTOM = 1
+        const val LEFT_TO_LEFT = 0
+        const val LEFT_TO_TOP = 1
+        const val LEFT_TO_RIGHT = 2
+        const val LEFT_TO_BOTTOM = 3
+        const val TOP_TO_LEFT = 4
+        const val TOP_TO_TOP = 5
+        const val TOP_TO_RIGHT = 6
+        const val TOP_TO_BOTTOM = 7
+        const val RIGHT_TO_LEFT = 8
+        const val RIGHT_TO_TOP = 9
+        const val RIGHT_TO_RIGHT = 10
+        const val RIGHT_TO_BOTTOM = 11
+        const val BOTTOM_TO_LEFT = 12
+        const val BOTTOM_TO_TOP = 13
+        const val BOTTOM_TO_RIGHT = 14
+        const val BOTTOM_TO_BOTTOM = 15
+        const val VERTICAL = 16
+        const val HORIZONTAL = 17
     }
 }

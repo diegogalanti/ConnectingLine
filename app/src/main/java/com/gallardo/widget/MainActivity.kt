@@ -12,17 +12,17 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val newLine = ConnectingLineView(this, R.id.one, R.id.five)
-        val constraint = findViewById<ConstraintLayout>(R.id.cl)
-
-        constraint.addView(newLine)
-        newLine.setOriginView(R.id.six)
-        newLine.setDestinationView(R.id.five)
-        newLine.paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.FILL
-            strokeWidth = 10f
-            color = Color.YELLOW
-        }
-        newLine.preferredPath = ConnectingLineView.TOP_TO_BOTTOM
+//        val newLine = ConnectingLineView(this, R.id.one, R.id.five)
+//        val constraint = findViewById<ConstraintLayout>(R.id.cl)
+//
+//        constraint.addView(newLine)
+//        newLine.setOriginView(R.id.six)
+//        newLine.setDestinationView(R.id.five)
+//        newLine.paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+//            style = Paint.Style.FILL
+//            strokeWidth = 10f
+//            color = Color.YELLOW
+//        }
+//        newLine.preferredPath = ConnectingLineView.TOP_TO_BOTTOM
     }
 }
