@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
-import android.util.Half.toFloat
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +12,8 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.res.getColorOrThrow
 import androidx.core.content.withStyledAttributes
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 
 class ConnectingLineView : View {
@@ -164,10 +165,10 @@ class ConnectingLineView : View {
 
         moveToInitialXY(path)
         applyFirstLine(path)
-//        applySecondLine(path)
-//        applyThirdLine(path)
-//        applyFourthLine(path)
-//        applyFifthLine(path)
+        applySecondLine(path)
+        applyThirdLine(path)
+        applyFourthLine(path)
+        applyFifthLine(path)
         applyMarginOffset(path)
         return path
     }
@@ -176,19 +177,19 @@ class ConnectingLineView : View {
         path.moveTo(
             when (preferredPath) {
                 TOP_TO_TOP, TOP_TO_RIGHT, TOP_TO_LEFT, TOP_TO_BOTTOM, BOTTOM_TO_TOP, BOTTOM_TO_RIGHT, BOTTOM_TO_LEFT, BOTTOM_TO_BOTTOM -> {
-                    if (isLeft())
+                    if (leftToLeftDistance() >= 0)
                         (originView.width / 2).toFloat()
                     else
                         (originView.left - destinationView.left + (originView.width / 2)).toFloat()
                 }
                 LEFT_TO_TOP, LEFT_TO_RIGHT, LEFT_TO_LEFT, LEFT_TO_BOTTOM -> {
-                    if (isLeft())
+                    if (leftToLeftDistance() >= 0)
                         0f
                     else
                         (destinationView.left - originView.left).toFloat()
                 }
                 RIGHT_TO_TOP, RIGHT_TO_RIGHT, RIGHT_TO_LEFT, RIGHT_TO_BOTTOM -> {
-                    if (isLeft())
+                    if (leftToLeftDistance() >= 0)
                         originView.width.toFloat()
                     else
                         (originView.left - destinationView.left + originView.width).toFloat()
@@ -198,20 +199,20 @@ class ConnectingLineView : View {
                 }
             },
             when (preferredPath) {
-                LEFT_TO_TOP, LEFT_TO_RIGHT, LEFT_TO_LEFT, LEFT_TO_BOTTOM, RIGHT_TO_TOP, RIGHT_TO_RIGHT, RIGHT_TO_LEFT, RIGHT_TO_BOTTOM  -> {
-                    if (isAbove())
+                LEFT_TO_TOP, LEFT_TO_RIGHT, LEFT_TO_LEFT, LEFT_TO_BOTTOM, RIGHT_TO_TOP, RIGHT_TO_RIGHT, RIGHT_TO_LEFT, RIGHT_TO_BOTTOM -> {
+                    if (topToTopDistance() >= 0)
                         (originView.height / 2).toFloat()
                     else
                         (originView.top - destinationView.top + (originView.height / 2)).toFloat()
                 }
                 TOP_TO_TOP, TOP_TO_RIGHT, TOP_TO_LEFT, TOP_TO_BOTTOM -> {
-                    if (isAbove())
+                    if (topToTopDistance() >= 0)
                         0f
                     else
                         (originView.top - destinationView.top).toFloat()
                 }
                 BOTTOM_TO_TOP, BOTTOM_TO_RIGHT, BOTTOM_TO_LEFT, BOTTOM_TO_BOTTOM -> {
-                    if (isAbove())
+                    if (topToTopDistance() >= 0)
                         originView.height.toFloat()
                     else
                         (originView.top - destinationView.top + originView.height).toFloat()
@@ -250,25 +251,130 @@ class ConnectingLineView : View {
         )
     }
 
-    private fun applyFifthLine(path: Path) {
+    private fun applySecondLine(path: Path) {
         path.rLineTo(
             when (preferredPath) {
-                TOP_TO_TOP, TOP_TO_RIGHT, TOP_TO_LEFT, TOP_TO_BOTTOM -> {
-                    dentSize.toFloat()
-                }
-                BOTTOM_TO_TOP, BOTTOM_TO_RIGHT, BOTTOM_TO_LEFT, BOTTOM_TO_BOTTOM -> {
-                    -dentSize.toFloat()
+                TOP_TO_TOP -> {
+                    if (topToTopDistance() >= 0)
+                        if (horizontalMidDistance() >= 0)
+                            max(horizontalMidDistance(), (originView.width / 2 + dentSize).toFloat())
+                        else
+                            min(horizontalMidDistance(), -(originView.width / 2 + dentSize).toFloat())
+                    else
+                        if (abs(horizontalMidDistance()) >= destinationView.width / 2 + dentSize)
+                            0f
+                        else if (horizontalMidDistance() <= 0)
+                            horizontalMidDistance() + destinationView.width / 2 + dentSize
+                        else
+                            horizontalMidDistance() - destinationView.width / 2 - dentSize
                 }
                 else -> {
                     0f
                 }
             },
             when (preferredPath) {
+                TOP_TO_TOP -> {
+                    if (topToTopDistance() >= 0)
+                        0f
+                    else
+                        if (abs(horizontalMidDistance()) >= destinationView.width / 2 + dentSize)
+                            topToTopDistance()
+                        else
+                            0f
+                }
+                else -> {
+                    0f
+                }
+            }
+        )
+    }
+
+    private fun applyThirdLine(path: Path) {
+        path.rLineTo(
+            when (preferredPath) {
+                TOP_TO_TOP -> {
+                    if (topToTopDistance() >= 0)
+                        0f
+                    else
+                        if (abs(horizontalMidDistance()) >= destinationView.width / 2 + dentSize)
+                            horizontalMidDistance()
+                        else
+                            0f
+                }
+                else -> {
+                    0f
+                }
+            },
+            when (preferredPath) {
+                TOP_TO_TOP -> {
+                    if (topToTopDistance() >= 0)
+                        topToTopDistance()
+                    else
+                        if (abs(horizontalMidDistance()) >= destinationView.width / 2 + dentSize)
+                            0f
+                        else
+                            topToTopDistance()
+                }
+                else -> {
+                    0f
+                }
+            }
+        )
+    }
+
+    private fun applyFourthLine(path: Path) {
+        path.rLineTo(
+            when (preferredPath) {
+                TOP_TO_TOP -> {
+                    if (topToTopDistance() >= 0)
+                        if (abs(horizontalMidDistance()) >= originView.width / 2 + dentSize)
+                            0f
+                        else if (horizontalMidDistance() < 0)
+                            horizontalMidDistance() + originView.width / 2 + dentSize
+                        else
+                            horizontalMidDistance() - originView.width / 2 - dentSize
+                    else
+                        if (abs(horizontalMidDistance()) >= destinationView.width / 2 + dentSize)
+                            0f
+                        else if (horizontalMidDistance() <= 0)
+                            -(destinationView.width / 2 + dentSize).toFloat()
+                        else
+                            (destinationView.width / 2 + dentSize).toFloat()
+                }
+                else -> {
+                    0f
+                }
+            },
+            when (preferredPath) {
+                TOP_TO_TOP -> {
+                    0f
+                }
+                else -> {
+                    0f
+                }
+            }
+        )
+    }
+
+    private fun applyFifthLine(path: Path) {
+        path.rLineTo(
+            when (preferredPath) {
                 RIGHT_TO_TOP, RIGHT_TO_RIGHT, RIGHT_TO_LEFT, RIGHT_TO_BOTTOM -> {
                     -dentSize.toFloat()
                 }
                 LEFT_TO_TOP, LEFT_TO_RIGHT, LEFT_TO_LEFT, LEFT_TO_BOTTOM -> {
                     dentSize.toFloat()
+                }
+                else -> {
+                    0f
+                }
+            },
+            when (preferredPath) {
+                TOP_TO_TOP, TOP_TO_RIGHT, TOP_TO_LEFT, TOP_TO_BOTTOM -> {
+                    dentSize.toFloat()
+                }
+                BOTTOM_TO_TOP, BOTTOM_TO_RIGHT, BOTTOM_TO_LEFT, BOTTOM_TO_BOTTOM -> {
+                    -dentSize.toFloat()
                 }
                 else -> {
                     0f
@@ -462,9 +568,12 @@ class ConnectingLineView : View {
 //        return originView.bottom < destinationView.top || originView.top > destinationView.bottom
 //    }
 
-    private fun isAbove() = originView.top <= destinationView.top
+    private fun topToTopDistance() = (destinationView.top - originView.top).toFloat()
 
-    private fun isLeft() = originView.left <= destinationView.left
+    private fun leftToLeftDistance() = (destinationView.left - originView.left).toFloat()
+
+    private fun horizontalMidDistance() =
+        ((destinationView.left + (destinationView.width / 2)) - (originView.left + (originView.width / 2))).toFloat()
 
     companion object PathDirection {
         const val LEFT_TO_LEFT = 0
