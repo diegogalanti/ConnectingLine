@@ -52,7 +52,6 @@ class MainActivity : AppCompatActivity() {
                 for (i in 0..17) {
                     if(s.toString() == items[i]) {
                         connectingLine1.preferredPath = i
-                        connectingLine1.preferredPath = i
                         connectingLine2.preferredPath = i
                         connectingLine3.preferredPath = i
                         connectingLine4.preferredPath = i
