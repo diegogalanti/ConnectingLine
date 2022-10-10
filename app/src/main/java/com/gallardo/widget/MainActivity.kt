@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import androidx.annotation.MenuRes
 import androidx.appcompat.widget.PopupMenu
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContentProviderCompat.requireContext
 import com.google.android.material.textfield.TextInputLayout
 
@@ -59,8 +60,17 @@ class MainActivity : AppCompatActivity() {
                         connectingLine7.preferredPath = i
                         connectingLine8.preferredPath = i
                         connectingLine9.preferredPath = i
+                        connectingLine1.invalidate()
+                        connectingLine2.invalidate()
+                        connectingLine3.invalidate()
+                        connectingLine4.invalidate()
+                        connectingLine6.invalidate()
+                        connectingLine7.invalidate()
+                        connectingLine8.invalidate()
+                        connectingLine9.invalidate()
                     }
                 }
+                findViewById<ConstraintLayout>(R.id.cl).invalidate()
             }
         })
     }
