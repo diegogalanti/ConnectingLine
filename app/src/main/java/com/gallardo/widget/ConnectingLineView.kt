@@ -7,14 +7,11 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.res.getColorOrThrow
 import androidx.core.content.withStyledAttributes
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 
 class ConnectingLineView : View {
@@ -61,7 +58,7 @@ class ConnectingLineView : View {
             value.style = Paint.Style.STROKE //if the passed Paint has no style or the wrong style
             field = value
         }
-    private var isFirstDraw = true
+//    private var isFirstDraw = true
 
     var dentSize = 20
 
@@ -89,26 +86,26 @@ class ConnectingLineView : View {
         destinationView = (parent as ViewGroup).findViewById(idDestinationView)
     }
 
-    /**
-     * We adjust the constraints here because we need to know which view, origin or destination
-     * is more to the left, right, top and bottom. The problem is that onLayout comes after onMeasure
-     * So we already calculated our size wrongly at this point, as we have not constraint here.
-     *
-     * Calling requestLayout() here does not work so we implemented a isFirstDraw var that adjust
-     * the constraint on the first time, please check onDraw for further explanation
-     */
-    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        super.onLayout(changed, left, top, right, bottom)
+//    /**
+//     * We adjust the constraints here because we need to know which view, origin or destination
+//     * is more to the left, right, top and bottom. The problem is that onLayout comes after onMeasure
+//     * So we already calculated our size wrongly at this point, as we have not constraint here.
+//     *
+//     * Calling requestLayout() here does not work so we implemented a isFirstDraw var that adjust
+//     * the constraint on the first time, please check onDraw for further explanation
+//     */
+//    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+//        super.onLayout(changed, left, top, right, bottom)
 //        adjustConstraints()
 //        layoutParams = layoutParams
-    }
+//    }
 
-    /**
-     * On the first call to onDraw we don't draw, instead we refresh the layoutParams so the lifecycle
-     * go back to onMeasure with the correct data. On the further calls, the path is drawn normally.
-     *
-     * Check onLayout for further explanation
-     */
+    //    /**
+//     * On the first call to onDraw we don't draw, instead we refresh the layoutParams so the lifecycle
+//     * go back to onMeasure with the correct data. On the further calls, the path is drawn normally.
+//     *
+//     * Check onLayout for further explanation
+//     */
     override fun onDraw(canvas: Canvas) {
 //        if (isFirstDraw) {
 //            layoutParams = layoutParams
@@ -152,7 +149,30 @@ class ConnectingLineView : View {
 
     private fun createPath(): Path {
         val path = Path()
-
+        val oldPath = preferredPath
+        if (preferredPath == HORIZONTAL) {
+            preferredPath = if (abs(leftToRightDistance()) < abs(rightToLeftDistance()))
+                if (leftToRightDistance() <= 0)
+                    LEFT_TO_RIGHT
+                else
+                    LEFT_TO_LEFT
+            else
+                if (rightToLeftDistance() >= 0)
+                    RIGHT_TO_LEFT
+                else
+                    RIGHT_TO_RIGHT
+        } else if (preferredPath == VERTICAL) {
+            preferredPath = if (abs(topToBottomDistance()) < abs(bottomToTopDistance()))
+                if (topToBottomDistance() <= 0)
+                    TOP_TO_BOTTOM
+                else
+                    TOP_TO_TOP
+            else
+                if (bottomToTopDistance() >= 0)
+                    BOTTOM_TO_TOP
+                else
+                    BOTTOM_TO_BOTTOM
+        }
         moveToInitialXY(path)
         applyFirstLine(path)
         applySecondLine(path)
@@ -160,6 +180,7 @@ class ConnectingLineView : View {
         applyFourthLine(path)
         applyFifthLine(path)
 //        applyMarginOffset(path)
+        preferredPath = oldPath
         return path
     }
 
@@ -369,7 +390,7 @@ class ConnectingLineView : View {
                         if (topToBottomDistance() > 0 && horizontalMidToLeftDistance() < 0)
                             0f
                         else
-                             horizontalMidToLeftDistance()
+                            horizontalMidToLeftDistance()
                 }
                 TOP_TO_RIGHT -> {
                     if (topToTopDistance() >= 0)
@@ -581,7 +602,7 @@ class ConnectingLineView : View {
                     else
                         if (verticalMidToTopDistance() < 0 && leftToRightDistance() > 0)
                             0f
-                    else
+                        else
                             verticalMidToTopDistance()
                 }
                 RIGHT_TO_TOP -> {
@@ -844,310 +865,312 @@ class ConnectingLineView : View {
     }
 
     private fun applyFourthLine(path: Path) {
-        path.rLineTo(
-            when (preferredPath) {
-                TOP_TO_TOP -> {
-                    if (topToTopDistance() >= 0)
-                        if (abs(horizontalMidDistance()) >= originView.width / 2 + dentSize)
-                            0f
-                        else if (horizontalMidDistance() < 0)
-                            horizontalMidDistance() + originView.width / 2 + dentSize
-                        else
-                            horizontalMidDistance() - originView.width / 2 - dentSize
-                    else
-                        if (abs(horizontalMidDistance()) >= destinationView.width / 2 + dentSize)
-                            0f
-                        else if (horizontalMidDistance() <= 0)
-                            -(destinationView.width / 2 + dentSize).toFloat()
-                        else
-                            (destinationView.width / 2 + dentSize).toFloat()
-                }
-                BOTTOM_TO_BOTTOM -> {
-                    if (bottomToBottomDistance() <= 0)
-                        if (abs(horizontalMidDistance()) >= originView.width / 2 + dentSize)
-                            0f
-                        else if (horizontalMidDistance() < 0)
-                            horizontalMidDistance() + originView.width / 2 + dentSize
-                        else
-                            horizontalMidDistance() - originView.width / 2 - dentSize
-                    else
-                        if (abs(horizontalMidDistance()) >= destinationView.width / 2 + dentSize)
-                            0f
-                        else if (horizontalMidDistance() <= 0)
-                            -(destinationView.width / 2 + dentSize).toFloat()
-                        else
-                            (destinationView.width / 2 + dentSize).toFloat()
-                }
-                LEFT_TO_LEFT -> {
-                    0f
-                }
-                RIGHT_TO_RIGHT -> {
-                    0f
-                }
-                TOP_TO_BOTTOM -> {
-                    if (topToBottomDistance() >= 0)
-                        if (horizontalMidDistance() >= 0)
-                            if (originView.right <= destinationView.left - 2 * dentSize)
-                                horizontalMidDistance() - (originView.width / 2 + dentSize).toFloat()
-                            else
-                                horizontalMidDistance() - max(
-                                    horizontalMidDistance() + (destinationView.width / 2 + dentSize).toFloat(),
-                                    (originView.width / 2 + dentSize).toFloat()
-                                )
-                        else
-                            if (originView.left >= destinationView.right + 2 * dentSize)
-                                horizontalMidDistance() - -(originView.width / 2 + dentSize).toFloat()
-                            else
-                                horizontalMidDistance() - min(
-                                    horizontalMidDistance() - (destinationView.width / 2 + dentSize).toFloat(),
-                                    -(originView.width / 2 + dentSize).toFloat()
-                                )
-                    else
+        val x = when (preferredPath) {
+            TOP_TO_TOP -> {
+                if (topToTopDistance() >= 0)
+                    if (abs(horizontalMidDistance()) >= originView.width / 2 + dentSize)
                         0f
-                }
-                BOTTOM_TO_TOP -> {
-                    if (bottomToTopDistance() <= 0)
-                        if (horizontalMidDistance() >= 0)
-                            if (originView.right <= destinationView.left - 2 * dentSize)
-                                horizontalMidDistance() - (originView.width / 2 + dentSize).toFloat()
-                            else
-                                horizontalMidDistance() - max(
-                                    horizontalMidDistance() + (destinationView.width / 2 + dentSize).toFloat(),
-                                    (originView.width / 2 + dentSize).toFloat()
-                                )
-                        else
-                            if (originView.left >= destinationView.right + 2 * dentSize)
-                                horizontalMidDistance() - -(originView.width / 2 + dentSize).toFloat()
-                            else
-                                horizontalMidDistance() - min(
-                                    horizontalMidDistance() - (destinationView.width / 2 + dentSize).toFloat(),
-                                    -(originView.width / 2 + dentSize).toFloat()
-                                )
+                    else if (horizontalMidDistance() < 0)
+                        horizontalMidDistance() + originView.width / 2 + dentSize
                     else
+                        horizontalMidDistance() - originView.width / 2 - dentSize
+                else
+                    if (abs(horizontalMidDistance()) >= destinationView.width / 2 + dentSize)
                         0f
-                }
-                LEFT_TO_RIGHT -> {
-                    0f
-                }
-                RIGHT_TO_LEFT -> {
-                    0f
-                }
-                TOP_TO_LEFT -> {
-                    if (topToTopDistance() >= 0)
-                        if (rightToLeftDistance() < 0 && leftToLeftDistance() > 0)
-                            horizontalMidToLeftDistance() + originView.width / 2 + dentSize
-                        else
-                            0f
+                    else if (horizontalMidDistance() <= 0)
+                        -(destinationView.width / 2 + dentSize).toFloat()
                     else
-                        0f
-                }
-                TOP_TO_RIGHT -> {
-                    if (topToTopDistance() >= 0)
-                        if (leftToRightDistance() > 0 && rightToRightDistance() < 0)
-                            horizontalMidToRightDistance() - originView.width / 2 - dentSize
-                        else
-                            0f
-                    else
-                        0f
-                }
-                BOTTOM_TO_LEFT -> {
-                    if (bottomToBottomDistance() <= 0)
-                        if (rightToLeftDistance() < 0 && leftToLeftDistance() > 0)
-                            horizontalMidToLeftDistance() + originView.width / 2 + dentSize
-                        else
-                            0f
-                    else
-                        0f
-                }
-                BOTTOM_TO_RIGHT -> {
-                    if (bottomToBottomDistance() < 0)
-                        if (leftToRightDistance() > 0 && rightToRightDistance() < 0)
-                            horizontalMidToRightDistance() - originView.width / 2 - dentSize
-                        else
-                            0f
-                    else
-                        0f
-                }
-                LEFT_TO_TOP -> {
-                    if (verticalMidToTopDistance() < 0 && ((leftToHorizontalMidDistance() >= 0 && leftToLeftDistance() < 0) || (leftToHorizontalMidDistance() < 0 && leftToRightDistance() > 0)))
-                        (dentSize + destinationView.width / 2).toFloat()
-                    else
-                        0f
-                }
-                RIGHT_TO_TOP -> {
-                    if (verticalMidToTopDistance() < 0 && ((rightToHorizontalMidDistance() <= 0 && rightToRightDistance() > 0) || (rightToHorizontalMidDistance() > 0 && rightToLeftDistance() < 0)))
-                        -(dentSize + destinationView.width / 2).toFloat()
-                    else
-                        0f
-                }
-                LEFT_TO_BOTTOM -> {
-                    if (verticalMidToBottomDistance() > 0 && ((leftToHorizontalMidDistance() >= 0 && leftToLeftDistance() < 0) || (leftToHorizontalMidDistance() < 0 && leftToRightDistance() > 0)))
-                        (dentSize + destinationView.width / 2).toFloat()
-                    else
-                        0f
-                }
-                RIGHT_TO_BOTTOM -> {
-                    if (verticalMidToBottomDistance() > 0 && ((rightToHorizontalMidDistance() <= 0 && rightToRightDistance() > 0) || (rightToHorizontalMidDistance() > 0 && rightToLeftDistance() < 0)))
-                        -(dentSize + destinationView.width / 2).toFloat()
-                    else
-                        0f
-                }
-                else -> {
-                    0f
-                }
-            },
-            when (preferredPath) {
-                TOP_TO_TOP -> {
-                    0f
-                }
-                BOTTOM_TO_BOTTOM -> {
-                    0f
-                }
-                LEFT_TO_LEFT -> {
-                    if (leftToLeftDistance() >= 0)
-                        if (abs(verticalMidDistance()) >= originView.height / 2 + dentSize)
-                            0f
-                        else if (verticalMidDistance() <= 0)
-                            verticalMidDistance() + originView.height / 2 + dentSize
-                        else
-                            verticalMidDistance() - originView.height / 2 - dentSize
-                    else
-                        if (abs(verticalMidDistance()) >= destinationView.height / 2 + dentSize)
-                            0f
-                        else if (verticalMidDistance() < 0)
-                            -(destinationView.height / 2 + dentSize).toFloat()
-                        else
-                            (destinationView.height / 2 + dentSize).toFloat()
-                }
-                RIGHT_TO_RIGHT -> {
-                    if (rightToRightDistance() <= 0)
-                        if (abs(verticalMidDistance()) >= originView.height / 2 + dentSize)
-                            0f
-                        else if (verticalMidDistance() <= 0)
-                            verticalMidDistance() + originView.height / 2 + dentSize
-                        else
-                            verticalMidDistance() - originView.height / 2 - dentSize
-                    else
-                        if (abs(verticalMidDistance()) >= destinationView.height / 2 + dentSize)
-                            0f
-                        else if (verticalMidDistance() < 0)
-                            -(destinationView.height / 2 + dentSize).toFloat()
-                        else
-                            (destinationView.height / 2 + dentSize).toFloat()
-                }
-                TOP_TO_BOTTOM -> {
-                    0f
-                }
-                BOTTOM_TO_TOP -> {
-                    0f
-                }
-                LEFT_TO_RIGHT -> {
-                    if (leftToRightDistance() >= 0)
-                        if (verticalMidDistance() > 0)
-                            if (originView.bottom <= destinationView.top - 2 * dentSize)
-                                verticalMidDistance() - (originView.height / 2 + dentSize).toFloat()
-                            else
-                                verticalMidDistance() - max(
-                                    verticalMidDistance() + (destinationView.height / 2 + dentSize).toFloat(),
-                                    (originView.height / 2 + dentSize).toFloat()
-                                )
-                        else
-                            if (originView.top >= destinationView.bottom + 2 * dentSize)
-                                verticalMidDistance() - -(originView.height / 2 + dentSize).toFloat()
-                            else
-                                verticalMidDistance() - min(
-                                    verticalMidDistance() - (destinationView.height / 2 + dentSize).toFloat(),
-                                    -(originView.height / 2 + dentSize).toFloat()
-                                )
-                    else
-                        0f
-                }
-                RIGHT_TO_LEFT -> {
-                    if (rightToLeftDistance() <= 0)
-                        if (verticalMidDistance() > 0)
-                            if (originView.bottom <= destinationView.top - 2 * dentSize)
-                                verticalMidDistance() - (originView.height / 2 + dentSize).toFloat()
-                            else
-                                verticalMidDistance() - max(
-                                    verticalMidDistance() + (destinationView.height / 2 + dentSize).toFloat(),
-                                    (originView.height / 2 + dentSize).toFloat()
-                                )
-                        else
-                            if (originView.top >= destinationView.bottom + 2 * dentSize)
-                                verticalMidDistance() - -(originView.height / 2 + dentSize).toFloat()
-                            else
-                                verticalMidDistance() - min(
-                                    verticalMidDistance() - (destinationView.height / 2 + dentSize).toFloat(),
-                                    -(originView.height / 2 + dentSize).toFloat()
-                                )
-                    else
-                        0f
-                }
-                TOP_TO_LEFT -> {
-                    if (horizontalMidToLeftDistance() < 0 && ((topToVerticalMidDistance() >= 0 && topToTopDistance() < 0) || (topToVerticalMidDistance() < 0 && topToBottomDistance() > 0)))
-                        (dentSize + destinationView.height / 2).toFloat()
-                    else
-                        0f
-                }
-                TOP_TO_RIGHT -> {
-                    if (horizontalMidToRightDistance() > 0 && ((topToVerticalMidDistance() >= 0 && topToTopDistance() < 0) || (topToVerticalMidDistance() < 0 && topToBottomDistance() > 0)))
-                        (dentSize + destinationView.height / 2).toFloat()
-                    else
-                        0f
-                }
-                BOTTOM_TO_LEFT -> {
-                    if (horizontalMidToLeftDistance() < 0 && ((bottomToVerticalMidDistance() <= 0 && bottomToBottomDistance() > 0) || (bottomToVerticalMidDistance() > 0 && bottomToTopDistance() < 0)))
-                        -(dentSize + destinationView.height / 2).toFloat()
-                    else
-                        0f
-                }
-                BOTTOM_TO_RIGHT -> {
-                    if (horizontalMidToRightDistance() > 0 && ((bottomToVerticalMidDistance() <= 0 && bottomToBottomDistance() > 0) || (bottomToVerticalMidDistance() > 0 && bottomToTopDistance() < 0)))
-                        -(dentSize + destinationView.height / 2).toFloat()
-                    else
-                        0f
-                }
-                LEFT_TO_TOP -> {
-                    if (leftToLeftDistance() >= 0)
-                        if (bottomToTopDistance() < 0 && topToTopDistance() > 0)
-                            verticalMidToTopDistance() + originView.height / 2 + dentSize
-                        else
-                            0f
-                    else
-                        0f
-                }
-                RIGHT_TO_TOP -> {
-                    if (rightToRightDistance() <= 0)
-                        if (bottomToTopDistance() < 0 && topToTopDistance() > 0)
-                            verticalMidToTopDistance() + originView.height / 2 + dentSize
-                        else
-                            0f
-                    else
-                        0f
-                }
-                LEFT_TO_BOTTOM -> {
-                    if (leftToLeftDistance() >= 0)
-                        if (topToBottomDistance() > 0 && bottomToBottomDistance() < 0)
-                            verticalMidToBottomDistance() - originView.height / 2 - dentSize
-                        else
-                            0f
-                    else
-                        0f
-                }
-                RIGHT_TO_BOTTOM -> {
-                    if (rightToRightDistance() <= 0)
-                        if (topToBottomDistance() > 0 && bottomToBottomDistance() < 0)
-                            verticalMidToBottomDistance() - originView.height / 2 - dentSize
-                        else
-                            0f
-                    else
-                        0f
-                }
-                else -> {
-                    0f
-                }
+                        (destinationView.width / 2 + dentSize).toFloat()
             }
-        )
+            BOTTOM_TO_BOTTOM -> {
+                if (bottomToBottomDistance() <= 0)
+                    if (abs(horizontalMidDistance()) >= originView.width / 2 + dentSize)
+                        0f
+                    else if (horizontalMidDistance() < 0)
+                        horizontalMidDistance() + originView.width / 2 + dentSize
+                    else
+                        horizontalMidDistance() - originView.width / 2 - dentSize
+                else
+                    if (abs(horizontalMidDistance()) >= destinationView.width / 2 + dentSize)
+                        0f
+                    else if (horizontalMidDistance() <= 0)
+                        -(destinationView.width / 2 + dentSize).toFloat()
+                    else
+                        (destinationView.width / 2 + dentSize).toFloat()
+            }
+            LEFT_TO_LEFT -> {
+                0f
+            }
+            RIGHT_TO_RIGHT -> {
+                0f
+            }
+            TOP_TO_BOTTOM -> {
+                if (topToBottomDistance() >= 0)
+                    if (horizontalMidDistance() >= 0)
+                        if (originView.right <= destinationView.left - 2 * dentSize)
+                            horizontalMidDistance() - (originView.width / 2 + dentSize).toFloat()
+                        else
+                            horizontalMidDistance() - max(
+                                horizontalMidDistance() + (destinationView.width / 2 + dentSize).toFloat(),
+                                (originView.width / 2 + dentSize).toFloat()
+                            )
+                    else
+                        if (originView.left >= destinationView.right + 2 * dentSize)
+                            horizontalMidDistance() - -(originView.width / 2 + dentSize).toFloat()
+                        else
+                            horizontalMidDistance() - min(
+                                horizontalMidDistance() - (destinationView.width / 2 + dentSize).toFloat(),
+                                -(originView.width / 2 + dentSize).toFloat()
+                            )
+                else
+                    0f
+            }
+            BOTTOM_TO_TOP -> {
+                if (bottomToTopDistance() <= 0)
+                    if (horizontalMidDistance() >= 0)
+                        if (originView.right <= destinationView.left - 2 * dentSize)
+                            horizontalMidDistance() - (originView.width / 2 + dentSize).toFloat()
+                        else
+                            horizontalMidDistance() - max(
+                                horizontalMidDistance() + (destinationView.width / 2 + dentSize).toFloat(),
+                                (originView.width / 2 + dentSize).toFloat()
+                            )
+                    else
+                        if (originView.left >= destinationView.right + 2 * dentSize)
+                            horizontalMidDistance() - -(originView.width / 2 + dentSize).toFloat()
+                        else
+                            horizontalMidDistance() - min(
+                                horizontalMidDistance() - (destinationView.width / 2 + dentSize).toFloat(),
+                                -(originView.width / 2 + dentSize).toFloat()
+                            )
+                else
+                    0f
+            }
+            LEFT_TO_RIGHT -> {
+                0f
+            }
+            RIGHT_TO_LEFT -> {
+                0f
+            }
+            TOP_TO_LEFT -> {
+                if (topToTopDistance() >= 0)
+                    if (rightToLeftDistance() < 0 && leftToLeftDistance() > 0)
+                        horizontalMidToLeftDistance() + originView.width / 2 + dentSize
+                    else
+                        0f
+                else
+                    0f
+            }
+            TOP_TO_RIGHT -> {
+                if (topToTopDistance() >= 0)
+                    if (leftToRightDistance() > 0 && rightToRightDistance() < 0)
+                        horizontalMidToRightDistance() - originView.width / 2 - dentSize
+                    else
+                        0f
+                else
+                    0f
+            }
+            BOTTOM_TO_LEFT -> {
+                if (bottomToBottomDistance() <= 0)
+                    if (rightToLeftDistance() < 0 && leftToLeftDistance() > 0)
+                        horizontalMidToLeftDistance() + originView.width / 2 + dentSize
+                    else
+                        0f
+                else
+                    0f
+            }
+            BOTTOM_TO_RIGHT -> {
+                if (bottomToBottomDistance() < 0)
+                    if (leftToRightDistance() > 0 && rightToRightDistance() < 0)
+                        horizontalMidToRightDistance() - originView.width / 2 - dentSize
+                    else
+                        0f
+                else
+                    0f
+            }
+            LEFT_TO_TOP -> {
+                if (verticalMidToTopDistance() < 0 && ((leftToHorizontalMidDistance() >= 0 && leftToLeftDistance() < 0) || (leftToHorizontalMidDistance() < 0 && leftToRightDistance() > 0)))
+                    (dentSize + destinationView.width / 2).toFloat()
+                else
+                    0f
+            }
+            RIGHT_TO_TOP -> {
+                if (verticalMidToTopDistance() < 0 && ((rightToHorizontalMidDistance() <= 0 && rightToRightDistance() > 0) || (rightToHorizontalMidDistance() > 0 && rightToLeftDistance() < 0)))
+                    -(dentSize + destinationView.width / 2).toFloat()
+                else
+                    0f
+            }
+            LEFT_TO_BOTTOM -> {
+                if (verticalMidToBottomDistance() > 0 && ((leftToHorizontalMidDistance() >= 0 && leftToLeftDistance() < 0) || (leftToHorizontalMidDistance() < 0 && leftToRightDistance() > 0)))
+                    (dentSize + destinationView.width / 2).toFloat()
+                else
+                    0f
+            }
+            RIGHT_TO_BOTTOM -> {
+                if (verticalMidToBottomDistance() > 0 && ((rightToHorizontalMidDistance() <= 0 && rightToRightDistance() > 0) || (rightToHorizontalMidDistance() > 0 && rightToLeftDistance() < 0)))
+                    -(dentSize + destinationView.width / 2).toFloat()
+                else
+                    0f
+            }
+            else -> {
+                0f
+            }
+        }
+        val y = when (preferredPath) {
+            TOP_TO_TOP -> {
+                0f
+            }
+            BOTTOM_TO_BOTTOM -> {
+                0f
+            }
+            LEFT_TO_LEFT -> {
+                if (leftToLeftDistance() >= 0)
+                    if (abs(verticalMidDistance()) >= originView.height / 2 + dentSize)
+                        0f
+                    else if (verticalMidDistance() <= 0)
+                        verticalMidDistance() + originView.height / 2 + dentSize
+                    else
+                        verticalMidDistance() - originView.height / 2 - dentSize
+                else
+                    if (abs(verticalMidDistance()) >= destinationView.height / 2 + dentSize)
+                        0f
+                    else if (verticalMidDistance() < 0)
+                        -(destinationView.height / 2 + dentSize).toFloat()
+                    else
+                        (destinationView.height / 2 + dentSize).toFloat()
+            }
+            RIGHT_TO_RIGHT -> {
+                if (rightToRightDistance() <= 0)
+                    if (abs(verticalMidDistance()) >= originView.height / 2 + dentSize)
+                        0f
+                    else if (verticalMidDistance() <= 0)
+                        verticalMidDistance() + originView.height / 2 + dentSize
+                    else
+                        verticalMidDistance() - originView.height / 2 - dentSize
+                else
+                    if (abs(verticalMidDistance()) >= destinationView.height / 2 + dentSize)
+                        0f
+                    else if (verticalMidDistance() < 0)
+                        -(destinationView.height / 2 + dentSize).toFloat()
+                    else
+                        (destinationView.height / 2 + dentSize).toFloat()
+            }
+            TOP_TO_BOTTOM -> {
+                0f
+            }
+            BOTTOM_TO_TOP -> {
+                0f
+            }
+            LEFT_TO_RIGHT -> {
+                if (leftToRightDistance() >= 0)
+                    if (verticalMidDistance() > 0)
+                        if (originView.bottom <= destinationView.top - 2 * dentSize)
+                            verticalMidDistance() - (originView.height / 2 + dentSize).toFloat()
+                        else
+                            verticalMidDistance() - max(
+                                verticalMidDistance() + (destinationView.height / 2 + dentSize).toFloat(),
+                                (originView.height / 2 + dentSize).toFloat()
+                            )
+                    else
+                        if (originView.top >= destinationView.bottom + 2 * dentSize)
+                            verticalMidDistance() - -(originView.height / 2 + dentSize).toFloat()
+                        else
+                            verticalMidDistance() - min(
+                                verticalMidDistance() - (destinationView.height / 2 + dentSize).toFloat(),
+                                -(originView.height / 2 + dentSize).toFloat()
+                            )
+                else
+                    0f
+            }
+            RIGHT_TO_LEFT -> {
+                if (rightToLeftDistance() <= 0)
+                    if (verticalMidDistance() > 0)
+                        if (originView.bottom <= destinationView.top - 2 * dentSize)
+                            verticalMidDistance() - (originView.height / 2 + dentSize).toFloat()
+                        else
+                            verticalMidDistance() - max(
+                                verticalMidDistance() + (destinationView.height / 2 + dentSize).toFloat(),
+                                (originView.height / 2 + dentSize).toFloat()
+                            )
+                    else
+                        if (originView.top >= destinationView.bottom + 2 * dentSize)
+                            verticalMidDistance() - -(originView.height / 2 + dentSize).toFloat()
+                        else
+                            verticalMidDistance() - min(
+                                verticalMidDistance() - (destinationView.height / 2 + dentSize).toFloat(),
+                                -(originView.height / 2 + dentSize).toFloat()
+                            )
+                else
+                    0f
+            }
+            TOP_TO_LEFT -> {
+                if (horizontalMidToLeftDistance() < 0 && ((topToVerticalMidDistance() >= 0 && topToTopDistance() < 0) || (topToVerticalMidDistance() < 0 && topToBottomDistance() > 0)))
+                    (dentSize + destinationView.height / 2).toFloat()
+                else
+                    0f
+            }
+            TOP_TO_RIGHT -> {
+                if (horizontalMidToRightDistance() > 0 && ((topToVerticalMidDistance() >= 0 && topToTopDistance() < 0) || (topToVerticalMidDistance() < 0 && topToBottomDistance() > 0)))
+                    (dentSize + destinationView.height / 2).toFloat()
+                else
+                    0f
+            }
+            BOTTOM_TO_LEFT -> {
+                if (horizontalMidToLeftDistance() < 0 && ((bottomToVerticalMidDistance() <= 0 && bottomToBottomDistance() > 0) || (bottomToVerticalMidDistance() > 0 && bottomToTopDistance() < 0)))
+                    -(dentSize + destinationView.height / 2).toFloat()
+                else
+                    0f
+            }
+            BOTTOM_TO_RIGHT -> {
+                if (horizontalMidToRightDistance() > 0 && ((bottomToVerticalMidDistance() <= 0 && bottomToBottomDistance() > 0) || (bottomToVerticalMidDistance() > 0 && bottomToTopDistance() < 0)))
+                    -(dentSize + destinationView.height / 2).toFloat()
+                else
+                    0f
+            }
+            LEFT_TO_TOP -> {
+                if (leftToLeftDistance() >= 0)
+                    if (bottomToTopDistance() < 0 && topToTopDistance() > 0)
+                        verticalMidToTopDistance() + originView.height / 2 + dentSize
+                    else
+                        0f
+                else
+                    0f
+            }
+            RIGHT_TO_TOP -> {
+                if (rightToRightDistance() <= 0)
+                    if (bottomToTopDistance() < 0 && topToTopDistance() > 0)
+                        verticalMidToTopDistance() + originView.height / 2 + dentSize
+                    else
+                        0f
+                else
+                    0f
+            }
+            LEFT_TO_BOTTOM -> {
+                if (leftToLeftDistance() >= 0)
+                    if (topToBottomDistance() > 0 && bottomToBottomDistance() < 0)
+                        verticalMidToBottomDistance() - originView.height / 2 - dentSize
+                    else
+                        0f
+                else
+                    0f
+            }
+            RIGHT_TO_BOTTOM -> {
+                if (rightToRightDistance() <= 0)
+                    if (topToBottomDistance() > 0 && bottomToBottomDistance() < 0)
+                        verticalMidToBottomDistance() - originView.height / 2 - dentSize
+                    else
+                        0f
+                else
+                    0f
+            }
+            else -> {
+                0f
+            }
+        }
+        //corner effect bugs if there is a 0,0 draw in the middle of the path
+        if (x == 0f && y == 0f)
+            return
+        path.rLineTo(x, y)
     }
 
     private fun applyFifthLine(path: Path) {
@@ -1254,5 +1277,6 @@ class ConnectingLineView : View {
         const val BOTTOM_TO_BOTTOM = 15
         const val VERTICAL = 16
         const val HORIZONTAL = 17
+        const val SHORTEST = 17
     }
 }

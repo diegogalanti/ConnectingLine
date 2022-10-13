@@ -16,8 +16,6 @@
         android:layout_height="wrap_content"
         tools:context=".MainActivity">
 
-
-
         <TextView
             android:id="@+id/one"
             android:layout_width="60dp"
@@ -46,6 +44,8 @@
             gallardo:destinationView="@id/one"
             gallardo:lineWidth="10"
             gallardo:lineColor="#050505"
+            gallardo:shadowColor="#050505"
+            gallardo:cornerEffectRadius="30"
             gallardo:dentSize="50"
             tools:ignore="MissingConstraints" />
 
