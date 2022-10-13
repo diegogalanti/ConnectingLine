@@ -570,88 +570,64 @@ class ConnectingLineView : View {
                         0f
                 }
                 LEFT_TO_TOP -> {
-                    if (leftToHorizontalMidDistance() >= 0)
+                    if (leftToLeftDistance() >= 0)
                         if (bottomToTopDistance() >= 0)
                             verticalMidToTopDistance()
                         else
-                            if (leftToLeftDistance() >= 0)
-                                min(
-                                    verticalMidToTopDistance(),
-                                    -(originView.height / 2 + dentSize).toFloat()
-                                )
-                            else
-                                0f
+                            min(
+                                verticalMidToTopDistance(),
+                                -(originView.height / 2 + dentSize).toFloat()
+                            )
                     else
-                        if (verticalMidToTopDistance() >= 0)
+                        if (verticalMidToTopDistance() < 0 && leftToRightDistance() > 0)
+                            0f
+                    else
                             verticalMidToTopDistance()
-                        else
-                            if (leftToRightDistance() <= 0)
-                                verticalMidToTopDistance()
-                            else
-                                0f
                 }
                 RIGHT_TO_TOP -> {
-                    if (rightToHorizontalMidDistance() < 0)
+                    if (rightToRightDistance() <= 0)
                         if (bottomToTopDistance() >= 0)
                             verticalMidToTopDistance()
                         else
-                            if (rightToLeftDistance() <= 0)
-                                min(
-                                    verticalMidToTopDistance(),
-                                    -(originView.height / 2 + dentSize).toFloat()
-                                )
-                            else
-                                0f
+                            min(
+                                verticalMidToTopDistance(),
+                                -(originView.height / 2 + dentSize).toFloat()
+                            )
                     else
-                        if (verticalMidToTopDistance() >= 0)
-                            verticalMidToTopDistance()
+                        if (verticalMidToTopDistance() < 0 && rightToLeftDistance() < 0)
+                            0f
                         else
-                            if (rightToLeftDistance() >= 0)
-                                verticalMidToTopDistance()
-                            else
-                                0f
+                            verticalMidToTopDistance()
                 }
                 LEFT_TO_BOTTOM -> {
-                    if (leftToHorizontalMidDistance() >= 0)
+                    if (leftToLeftDistance() >= 0)
                         if (topToBottomDistance() <= 0)
                             verticalMidToBottomDistance()
                         else
-                            if (leftToLeftDistance() >= 0)
-                                max(
-                                    verticalMidToBottomDistance(),
-                                    (originView.height / 2 + dentSize).toFloat()
-                                )
-                            else
-                                0f
+                            max(
+                                verticalMidToBottomDistance(),
+                                (originView.height / 2 + dentSize).toFloat()
+                            )
                     else
-                        if (verticalMidToBottomDistance() <= 0)
-                            verticalMidToBottomDistance()
+                        if (verticalMidToBottomDistance() > 0 && leftToRightDistance() > 0)
+                            0f
                         else
-                            if (leftToRightDistance() <= 0)
-                                verticalMidToBottomDistance()
-                            else
-                                0f
+                            verticalMidToBottomDistance()
                 }
                 RIGHT_TO_BOTTOM -> {
-                    if (rightToHorizontalMidDistance() < 0)
+                    if (rightToRightDistance() <= 0)
                         if (topToBottomDistance() <= 0)
                             verticalMidToBottomDistance()
                         else
-                            if (rightToLeftDistance() <= 0)
-                                max(
-                                    verticalMidToBottomDistance(),
-                                    (originView.height / 2 + dentSize).toFloat()
-                                )
-                            else
-                                0f
+                            max(
+                                verticalMidToBottomDistance(),
+                                (originView.height / 2 + dentSize).toFloat()
+                            )
                     else
-                        if (verticalMidToBottomDistance() <= 0)
-                            verticalMidToBottomDistance()
+                        if (verticalMidToBottomDistance() > 0 && rightToLeftDistance() < 0)
+                            0f
                         else
-                            if (rightToLeftDistance() >= 0)
-                                verticalMidToBottomDistance()
-                            else
-                                0f
+                            verticalMidToBottomDistance()
                 }
                 else -> {
                     0f
@@ -1132,7 +1108,7 @@ class ConnectingLineView : View {
                         0f
                 }
                 LEFT_TO_TOP -> {
-                    if (leftToHorizontalMidDistance() >= 0)
+                    if (leftToLeftDistance() >= 0)
                         if (bottomToTopDistance() < 0 && topToTopDistance() > 0)
                             verticalMidToTopDistance() + originView.height / 2 + dentSize
                         else
@@ -1141,8 +1117,8 @@ class ConnectingLineView : View {
                         0f
                 }
                 RIGHT_TO_TOP -> {
-                    if (rightToHorizontalMidDistance() <= 0)
-                        if (topToBottomDistance() > 0 && bottomToBottomDistance() < 0)
+                    if (rightToRightDistance() <= 0)
+                        if (bottomToTopDistance() < 0 && topToTopDistance() > 0)
                             verticalMidToTopDistance() + originView.height / 2 + dentSize
                         else
                             0f
@@ -1150,7 +1126,7 @@ class ConnectingLineView : View {
                         0f
                 }
                 LEFT_TO_BOTTOM -> {
-                    if (leftToHorizontalMidDistance() >= 0)
+                    if (leftToLeftDistance() >= 0)
                         if (topToBottomDistance() > 0 && bottomToBottomDistance() < 0)
                             verticalMidToBottomDistance() - originView.height / 2 - dentSize
                         else
@@ -1159,7 +1135,7 @@ class ConnectingLineView : View {
                         0f
                 }
                 RIGHT_TO_BOTTOM -> {
-                    if (rightToHorizontalMidDistance() <= 0)
+                    if (rightToRightDistance() <= 0)
                         if (topToBottomDistance() > 0 && bottomToBottomDistance() < 0)
                             verticalMidToBottomDistance() - originView.height / 2 - dentSize
                         else
