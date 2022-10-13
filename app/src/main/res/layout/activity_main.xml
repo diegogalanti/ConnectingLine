@@ -16,107 +16,27 @@
         android:layout_height="wrap_content"
         tools:context=".MainActivity">
 
+
+
         <TextView
             android:id="@+id/one"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:layout_marginStart="10dp"
             android:layout_marginTop="100dp"
-            android:background="#E3AA"
-            android:text="mid mid"
+            android:background="#87C790"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/two"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="#E3AA"
-            android:text="mid        mid"
-            android:layout_marginTop="180dp"
-            android:layout_marginLeft="100dp"
-
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
-
-        <TextView
-            android:id="@+id/three"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:layout_marginTop="100dp"
-            android:background="#E3AA"
-            android:text="mid mid"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/four"
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:layout_marginStart="30dp"
-            android:background="#E3AA"
-            android:text="mid mid"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/five"
-            android:layout_width="wrap_content"
+            android:layout_width="60dp"
             android:layout_height="60dp"
-            android:background="#E3AA"
-            android:text="mid mid"
+            android:background="#6AD5ED"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/six"
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:layout_marginEnd="30dp"
-            android:background="#E3AA"
-            android:text="mid mid"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/seven"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginBottom="10dp"
-            android:background="#E3AA"
-            android:text="mid mid"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <TextView
-            android:id="@+id/eight"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:layout_marginLeft="100dp"
-            android:background="#E3AA"
-            android:text="mid        mid"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
-
-        <TextView
-            android:id="@+id/nine"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="10dp"
-            android:background="#E3AA"
-            android:text="mid mid"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
 
         <com.gallardo.widget.ConnectingLineView
             android:id="@+id/five_to_one"
@@ -124,70 +44,18 @@
             android:layout_height="wrap_content"
             gallardo:originView="@id/five"
             gallardo:destinationView="@id/one"
-            tools:ignore="MissingConstraints" />
-
-        <com.gallardo.widget.ConnectingLineView
-            android:id="@+id/five_to_two"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            gallardo:originView="@id/five"
-            gallardo:destinationView="@id/two"
-            tools:ignore="MissingConstraints" />
-
-        <com.gallardo.widget.ConnectingLineView
-            android:id="@+id/five_to_three"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            gallardo:originView="@id/five"
-            gallardo:destinationView="@id/three"
-            tools:ignore="MissingConstraints" />
-
-        <com.gallardo.widget.ConnectingLineView
-            android:id="@+id/five_to_four"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            gallardo:originView="@id/five"
-            gallardo:destinationView="@id/four"
-            tools:ignore="MissingConstraints" />
-
-        <com.gallardo.widget.ConnectingLineView
-            android:id="@+id/five_to_six"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            gallardo:originView="@id/five"
-            gallardo:destinationView="@id/six"
-            tools:ignore="MissingConstraints" />
-
-        <com.gallardo.widget.ConnectingLineView
-            android:id="@+id/five_to_seven"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            gallardo:originView="@id/five"
-            gallardo:destinationView="@id/seven"
-            tools:ignore="MissingConstraints" />
-
-        <com.gallardo.widget.ConnectingLineView
-            android:id="@+id/five_to_eight"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            gallardo:originView="@id/five"
-            gallardo:destinationView="@id/eight"
-            tools:ignore="MissingConstraints" />
-
-        <com.gallardo.widget.ConnectingLineView
-            android:id="@+id/five_to_nine"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            gallardo:originView="@id/five"
-            gallardo:destinationView="@id/nine"
+            gallardo:lineWidth="10"
+            gallardo:lineColor="#050505"
+            gallardo:dentSize="50"
             tools:ignore="MissingConstraints" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/menu"
             style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
             android:layout_marginTop="10dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
