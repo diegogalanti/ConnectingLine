@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.core.content.res.getColorOrThrow
 import androidx.core.content.withStyledAttributes
 import kotlin.math.abs
+import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 
@@ -172,6 +173,57 @@ class ConnectingLineView : View {
                     BOTTOM_TO_TOP
                 else
                     BOTTOM_TO_BOTTOM
+        } else if (preferredPath == SHORTEST) {
+            val originLeftX = originView.left
+            val originRightX = originView.right
+            val originMiddleX = (originView.left + originView.width / 2)
+            val originTopY = originView.top
+            val originBottomY = originView.bottom
+            val originMiddleY = (originView.top + originView.height / 2)
+            val destinationLeftX = destinationView.left
+            val destinationRightX = destinationView.right
+            val destinationMiddleX = (destinationView.left + destinationView.width / 2)
+            val destinationTopY = destinationView.top
+            val destinationBottomY = destinationView.bottom
+            val destinationMiddleY = (destinationView.top + destinationView.height / 2)
+            val hypotLeftToLeft = hypot(abs(originLeftX - destinationLeftX).toFloat(),abs(originMiddleY - destinationMiddleY).toFloat())
+            val hypotLeftToTop = hypot(abs(originLeftX - destinationMiddleX).toFloat(),abs(originMiddleY - destinationTopY).toFloat())
+            val hypotLeftToRight = hypot(abs(originLeftX - destinationRightX).toFloat(),abs(originMiddleY - destinationMiddleY).toFloat())
+            val hypotLeftToBottom = hypot(abs(originLeftX - destinationMiddleX).toFloat(),abs(originMiddleY - destinationBottomY).toFloat())
+            val hypotTopToLeft = hypot(abs(originMiddleX - destinationLeftX).toFloat(),abs(originTopY - destinationMiddleY).toFloat())
+            val hypotTopToTop = hypot(abs(originMiddleX - destinationMiddleX).toFloat(),abs(originTopY - destinationTopY).toFloat())
+            val hypotTopToRight = hypot(abs(originMiddleX - destinationRightX).toFloat(),abs(originTopY - destinationMiddleY).toFloat())
+            val hypotTopToBottom = hypot(abs(originMiddleX - destinationMiddleX).toFloat(),abs(originTopY - destinationBottomY).toFloat())
+            val hypotRightToLeft = hypot(abs(originRightX - destinationLeftX).toFloat(),abs(originMiddleY - destinationMiddleY).toFloat())
+            val hypotRightToTop = hypot(abs(originRightX - destinationMiddleX).toFloat(),abs(originMiddleY - destinationTopY).toFloat())
+            val hypotRightToRight = hypot(abs(originRightX - destinationRightX).toFloat(),abs(originMiddleY - destinationMiddleY).toFloat())
+            val hypotRightToBottom = hypot(abs(originRightX - destinationMiddleX).toFloat(),abs(originMiddleY - destinationBottomY).toFloat())
+            val hypotBottomToLeft =  hypot(abs(originMiddleX - destinationLeftX).toFloat(),abs(originBottomY - destinationMiddleY).toFloat())
+            val hypotBottomToTop = hypot(abs(originMiddleX - destinationMiddleX).toFloat(),abs(originBottomY - destinationTopY).toFloat())
+            val hypotBottomToRight = hypot(abs(originMiddleX - destinationRightX).toFloat(),abs(originBottomY - destinationMiddleY).toFloat())
+            val hypotBottomToBottom = hypot(abs(originMiddleX - destinationMiddleX).toFloat(),abs(originBottomY - destinationBottomY).toFloat())
+            val min = floatArrayOf(hypotLeftToLeft, hypotLeftToTop, hypotLeftToRight, hypotLeftToBottom, hypotTopToLeft, hypotTopToTop, hypotTopToRight,
+                hypotTopToBottom, hypotRightToLeft, hypotRightToTop, hypotRightToRight, hypotRightToBottom, hypotBottomToLeft, hypotBottomToTop,
+                hypotBottomToRight, hypotBottomToBottom).min()
+            preferredPath = when (min) {
+                    hypotLeftToLeft -> LEFT_TO_LEFT
+                    hypotLeftToTop -> LEFT_TO_TOP
+                    hypotLeftToRight -> LEFT_TO_RIGHT
+                    hypotLeftToBottom -> LEFT_TO_BOTTOM
+                    hypotTopToLeft -> TOP_TO_LEFT
+                    hypotTopToTop -> TOP_TO_TOP
+                    hypotTopToRight -> TOP_TO_RIGHT
+                    hypotTopToBottom -> TOP_TO_BOTTOM
+                    hypotRightToLeft -> RIGHT_TO_LEFT
+                    hypotRightToTop -> RIGHT_TO_TOP
+                    hypotRightToRight -> RIGHT_TO_RIGHT
+                    hypotRightToBottom -> RIGHT_TO_BOTTOM
+                    hypotBottomToLeft -> BOTTOM_TO_LEFT
+                    hypotBottomToTop -> BOTTOM_TO_TOP
+                    hypotBottomToRight -> BOTTOM_TO_RIGHT
+                    else -> BOTTOM_TO_BOTTOM
+
+            }
         }
         moveToInitialXY(path)
         applyFirstLine(path)
@@ -1277,6 +1329,6 @@ class ConnectingLineView : View {
         const val BOTTOM_TO_BOTTOM = 15
         const val VERTICAL = 16
         const val HORIZONTAL = 17
-        const val SHORTEST = 17
+        const val SHORTEST = 18
     }
 }
