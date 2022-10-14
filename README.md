@@ -89,3 +89,7 @@ You can also include a ConnectingLine programmatically:
 	paint.pathEffect = CornerPathEffect(5f)
 	paint.setShadowLayer(2f, 1f, 1f, Color.YELLOW)
 	connectLine.paint = paint
+
+## **Sample**
+You can access a sample app in the following repository:
+https://github.com/diegogalanti/ConnectingLineSample
