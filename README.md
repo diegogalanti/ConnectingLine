@@ -93,3 +93,5 @@ You can also include a ConnectingLine programmatically:
 ## **Sample**
 You can access a sample app in the following repository:
 https://github.com/diegogalanti/ConnectingLineSample
+
+https://user-images.githubusercontent.com/99219186/195845496-3ed020d9-ba6c-465b-a9c2-ba8271febfaa.mp4
