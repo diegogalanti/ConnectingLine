@@ -8,6 +8,26 @@
         <attr name="lineWidth" format="float" />
         <attr name="lineColor" format="color" />
         <attr name="shadowColor" format="color" />
-        <attr name="preferredPath" format="integer" />
+        <attr name="preferredPath" format="enum">
+            <enum name="LEFT_TO_LEFT" />
+            <enum name="LEFT_TO_TOP" />
+            <enum name="LEFT_TO_RIGHT" />
+            <enum name="LEFT_TO_BOTTOM" />
+            <enum name="TOP_TO_LEFT" />
+            <enum name="TOP_TO_TOP" />
+            <enum name="TOP_TO_RIGHT" />
+            <enum name="TOP_TO_BOTTOM" />
+            <enum name="RIGHT_TO_LEFT" />
+            <enum name="RIGHT_TO_TOP" />
+            <enum name="RIGHT_TO_RIGHT" />
+            <enum name="RIGHT_TO_BOTTOM" />
+            <enum name="BOTTOM_TO_LEFT" />
+            <enum name="BOTTOM_TO_TOP" />
+            <enum name="BOTTOM_TO_RIGHT" />
+            <enum name="BOTTOM_TO_BOTTOM" />
+            <enum name="VERTICAL" />
+            <enum name="HORIZONTAL" />
+            <enum name="SHORTEST" />
+        </attr>
     </declare-styleable>
 </resources>
